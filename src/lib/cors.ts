@@ -47,4 +47,4 @@ export const corsAllowAll = initMiddleware(
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
-);S
+);
