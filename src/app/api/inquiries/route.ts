@@ -5,7 +5,7 @@ import dbConnect from '@/lib/mongodb';
 import Inquiry from '@/models/Inquiry';
 
 // Allowed origins for CORS
-const ALLOWED_ORIGINS = ['http://127.0.0.1:5500', 'https://selfpaced-tracker.vercel.app'];
+const ALLOWED_ORIGINS = ['*'];
 
 function createCorsResponse(body: any, status = 200, origin = '*') {
   const res = NextResponse.json(body, { status });
