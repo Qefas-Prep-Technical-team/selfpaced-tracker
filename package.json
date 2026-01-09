@@ -9,11 +9,15 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "cors": "^2.8.5",
     "mongoose": "^9.1.2",
     "next": "16.1.1",
+    "openai": "^6.15.0",
+    "pusher": "^5.2.0",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "twilio": "^5.11.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
