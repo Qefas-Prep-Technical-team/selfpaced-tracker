@@ -27,6 +27,20 @@ export default async function handler(
     }
 
     try {
+      // check if parent name or whatsapp already exists
+      const existing = await Inquiry.findOne({
+        $or: [{ parentName }, { whatsapp }],
+      });
+
+      if (existing) {
+        const conflicts: string[] = [];
+        if (existing.parentName === parentName) conflicts.push('parentName');
+        if (existing.whatsapp === whatsapp) conflicts.push('whatsapp');
+        return res
+          .status(409)
+          .json({ success: false, error: `${conflicts.join(' and ')} already exists` });
+      }
+
       const inquiry = await Inquiry.create({ parentName, childClass, whatsapp });
       return res.status(201).json({ success: true, inquiry });
     } catch (error) {
