@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
     ----------------------------------- */
 
 // 1. Get the model
-const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
 // 2. Prepare the prompt with the system instructions included
 const prompt = `
