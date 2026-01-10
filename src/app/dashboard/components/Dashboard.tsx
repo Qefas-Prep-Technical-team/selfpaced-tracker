@@ -1,8 +1,8 @@
-import StatCard from './StatCard'
+import StatCard, { StatCardProps } from './StatCard'
 import QuickActions from './QuickActions'
 import ActivityFeed from './ActivityFeed'
 
-const stats = [
+const stats: StatCardProps[] = [
   {
     title: 'Newsletter Subscribers',
     value: '12,480',
@@ -35,7 +35,7 @@ const stats = [
     icon: 'psychology',
     label: 'automation efficiency',
   },
-]
+] as const
 
 export default function Dashboard() {
   return (
