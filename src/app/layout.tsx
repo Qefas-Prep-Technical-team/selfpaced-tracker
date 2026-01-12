@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeClientProvider } from "@/context/ThemeClientProvider";
 import NextTopLoader from "nextjs-toploader";
+import { ToastContainer } from 'react-toastify';
+import QueryProvider from "@/lib/providers/QueryProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,10 +38,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <QueryProvider>
+
         <ThemeClientProvider>
           <NextTopLoader showSpinner={false} />
           {children}
+          <ToastContainer 
+          position="top-right"
+          autoClose={3000}
+          theme="colored" // or "dark" to match your UI
+        />
         </ThemeClientProvider>
+        </QueryProvider>
       </body>
     </html>
   );

@@ -9,7 +9,8 @@ const navItems = [
   { icon: 'contacts', label: 'Contacts', link: "/dashboard/contacts" },
   { icon: 'campaign', label: 'Newsletters', link: "/dashboard/newsletters" },
   { icon: 'bar_chart', label: 'Analytics', link: "/dashboard/analytics" },
-]
+  { icon: 'settings_input_antenna', label: 'Channel', link: "/dashboard/channel" },
+];
 
 export default function Sidebar() {
 
