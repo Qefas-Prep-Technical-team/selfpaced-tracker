@@ -33,7 +33,7 @@ const ChatHeader: FC<ChatHeaderProps> = ({ contactId }) => {
                     { value: 'manual', label: 'Manual', icon: 'person' },
                 ]}
                 value={mode}
-                onChange={setMode}
+                onChange={()=>{}}
             />
 
             <div className="flex items-center gap-3">

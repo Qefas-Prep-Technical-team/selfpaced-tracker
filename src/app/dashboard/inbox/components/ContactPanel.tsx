@@ -13,7 +13,7 @@ interface Tag {
 }
 
 interface ContactPanelProps {
-    contact: {
+    contact?: {
         name: string
         email: string
         avatar: string
@@ -44,12 +44,12 @@ const ContactPanel: FC<ContactPanelProps> = ({ contact }) => {
             <div className="p-6 flex flex-col items-center text-center border-b border-slate-100 dark:border-slate-800">
                 <div
                     className="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-20 w-20 mb-4 ring-4 ring-white dark:ring-slate-800 shadow-md"
-                    style={{ backgroundImage: `url(${contact.avatar})` }}
+                    style={{ backgroundImage: `url(${contact?.avatar})` }}
                 />
                 <h4 className="text-[#0d141b] dark:text-white font-bold text-lg">
-                    {contact.name}
+                    {contact?.name}
                 </h4>
-                <p className="text-[#4c739a] text-sm mb-4">{contact.role}</p>
+                <p className="text-[#4c739a] text-sm mb-4">{contact?.role}</p>
                 <button className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-primary/25 transition-all">
                     <span className="material-symbols-outlined">handshake</span>
                     Take Over Conversation
@@ -67,7 +67,7 @@ const ContactPanel: FC<ContactPanelProps> = ({ contact }) => {
                         <div className="flex items-center gap-3">
                             <span className="material-symbols-outlined text-slate-400 text-lg">mail</span>
                             <span className="text-sm text-[#0d141b] dark:text-slate-300">
-                                {contact.email}
+                                {contact?.email}
                             </span>
                         </div>
                         <div className="flex items-center gap-3">
@@ -75,7 +75,7 @@ const ContactPanel: FC<ContactPanelProps> = ({ contact }) => {
                                 location_on
                             </span>
                             <span className="text-sm text-[#0d141b] dark:text-slate-300">
-                                {contact.location}
+                                {contact?.location}
                             </span>
                         </div>
                         <div className="flex items-center gap-3">
@@ -83,7 +83,7 @@ const ContactPanel: FC<ContactPanelProps> = ({ contact }) => {
                                 calendar_today
                             </span>
                             <span className="text-sm text-[#0d141b] dark:text-slate-300">
-                                Customer since {contact.since}
+                                Customer since {contact?.since}
                             </span>
                         </div>
                     </div>
