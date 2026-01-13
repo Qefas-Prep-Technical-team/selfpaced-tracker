@@ -28,7 +28,8 @@ export async function POST(req: NextRequest) {
     if (!parentName || !whatsapp || !channelId || !channelName) {
       return NextResponse.json(
         { error: 'Missing required fields' },
-        { status: 400 }
+        { status: 400,headers: corsHeaders },
+         
       )
     }
 
@@ -43,7 +44,8 @@ export async function POST(req: NextRequest) {
         {
           error: 'This parent with the same WhatsApp number already exists',
         },
-        { status: 409 } // Conflict
+        { status: 409,headers: corsHeaders }, // Conflict
+         
       )
     }
 
@@ -63,13 +65,15 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       { success: true, inquiry },
-      { status: 201 }
+      { status: 201,headers: corsHeaders },
+      
     )
   } catch (error) {
     console.error(error)
     return NextResponse.json(
       { error: 'Server error' },
-      { status: 500 }
+      { status: 500,headers: corsHeaders },
+     
     )
   }
 }
