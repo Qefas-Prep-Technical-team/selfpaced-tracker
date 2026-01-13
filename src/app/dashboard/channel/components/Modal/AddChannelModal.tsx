@@ -11,38 +11,38 @@ import { FormImageUpload } from '../sidedrawer/FormImageUpload'
 import { API_ENDPOINTS } from '@/lib/api-config'
 import { toast } from 'react-toastify'
 import { useQueryClient } from '@tanstack/react-query'
+import { ChannelType } from '@/utils/channel-icons'
 
 
 interface ChannelFormData {
   name: string
-  type: 'digital' | 'offline' | 'team'
+  type: ChannelType
   description: string
-  sourceCategory: 'paid-social' | 'organic-search' | 'direct' | 'referral'
+  sourceCategory: 'paid-social' | 'organic-search' | 'direct' | 'referral'|'marketing'
   isActive: boolean
   profileImage: File | null
-  
 }
 
 const CHANNEL_TYPES = [
   { value: 'digital', label: 'Digital' },
   { value: 'offline', label: 'Offline' },
-  { value: 'team', label: 'Team-based' }
+  { value: 'team', label: 'Team-based' },
 ]
 
 const SOURCE_CATEGORIES = [
   { value: 'paid-social', label: 'Paid Social' },
   { value: 'organic-search', label: 'Organic Search' },
   { value: 'direct', label: 'Direct Traffic' },
-  { value: 'referral', label: 'Referral' }
+  { value: 'referral', label: 'Referral' },
+  { value: 'marketing', label: 'Marketing' },
 ]
 
 interface AddChannelModalProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (data: ChannelFormData) => void
 }
 
-export function AddChannelModal({ isOpen, onClose, onSubmit }: AddChannelModalProps) {
+export function AddChannelModal({ isOpen, onClose }: AddChannelModalProps) {
   const QueryClient = useQueryClient();
   const [channelId] = useState(() => `CH-${Math.floor(Math.random() * 90000) + 10000}-X`)
 
@@ -59,15 +59,9 @@ export function AddChannelModal({ isOpen, onClose, onSubmit }: AddChannelModalPr
   const handleCopyId = () => {
     navigator.clipboard.writeText(channelId)
   }
-const handleSubmit = async (data: ChannelFormData) => {
-  // Wait for the parent's onSubmit (the API call) to finish
-  await onSubmit(data); 
-  
-  // Only reset and close if successful
-  form.reset();
-  onClose();
-};
+
 const handleCreateChannel = async (data: ChannelFormData) => {
+  console.log('Form Data:', data);
   // 1. Show a "loading" toast while the upload happens
   const toastId = toast.loading("Uploading channel data...");
   try {

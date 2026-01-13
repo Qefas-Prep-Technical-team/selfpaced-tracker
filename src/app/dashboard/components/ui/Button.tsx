@@ -1,5 +1,6 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
+import { LucideIcon } from 'lucide-react'
 
 const buttonVariants = cva(
   'inline-flex items-center justify-center rounded-xl font-bold transition-all focus:outline-none focus:ring-2 focus:ring-primary/50',
@@ -29,26 +30,27 @@ const buttonVariants = cva(
 interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
-  icon?: string
+   icon?: LucideIcon   
+  iconPosition?: 'left' | 'right' // ✅ add this
 }
 
 export function Button({
   className,
   variant,
   size,
-  icon,
+  icon: Icon,
+  iconPosition = 'left',
   children,
   ...props
 }: ButtonProps) {
   return (
     <button
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size, className }), 'inline-flex items-center')}
       {...props}
     >
-      {icon && (
-        <span className="material-symbols-outlined mr-2">{icon}</span>
-      )}
+      {Icon && iconPosition === 'left' && <Icon className="mr-2" size={18} />}
       {children}
+      {Icon && iconPosition === 'right' && <Icon className="ml-2" size={18} />}
     </button>
   )
 }

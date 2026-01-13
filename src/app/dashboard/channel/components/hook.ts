@@ -2,7 +2,7 @@
 'use client'
 
 import { API_ENDPOINTS } from '@/lib/api-config'
-import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query'
+import { QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 async function fetchChannels() {
   const res = await fetch(API_ENDPOINTS.CHANNELS)
@@ -24,4 +24,28 @@ export function ChannelList() {
     error,
     refetch: () => QueryClient.invalidateQueries({ queryKey: ['channels'] })
   }
+}
+
+export function useDeleteChannel() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    // In v5, mutationFn is part of the object
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/channels?id=${id}`, { 
+        method: 'DELETE' 
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to delete channel');
+      }
+
+      return res.json();
+    },
+    onSuccess: () => {
+      // ✅ Invalidate 'channels' to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['channels'] });
+    },
+  });
 }

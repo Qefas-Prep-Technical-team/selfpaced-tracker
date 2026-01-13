@@ -2,7 +2,7 @@
 export interface Channel {
   _id: string;
   name: string;
-  type: 'digital' | 'person' | 'offline';
+  type:'digital' | 'offline' | 'team'
   status: 'active' | 'paused' | 'archived';
   description?: string;
   sourceCategory?: string;

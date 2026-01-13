@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Inquiry from '@/models/Inquiry';
+import { Channel } from '@/models/Channel';
 
 // Define headers clearly
 const corsHeaders = {
@@ -15,41 +16,37 @@ export async function OPTIONS() {
   return NextResponse.json({}, { headers: corsHeaders });
 }
 
+// app/api/inquiries/route.ts
 export async function POST(req: NextRequest) {
   try {
     await dbConnect();
-    
     const body = await req.json();
-    const { parentName, childClass, whatsapp } = body;
+    const { parentName, childClass, whatsapp, channelId, channelName } = body;
 
-    if (!parentName || !childClass || !whatsapp) {
-      return NextResponse.json(
-        { success: false, error: 'All fields are required' },
-        { status: 400, headers: corsHeaders }
-      );
+    // 1. Validation
+    if (!channelId || !channelName) {
+        return NextResponse.json({ error: 'Source is required' }, { status: 400 });
     }
 
-    // Check for existing
-    const existing = await Inquiry.findOne({ $or: [{ parentName }, { whatsapp }] });
-    if (existing) {
-      return NextResponse.json(
-        { success: false, error: 'Inquiry already exists' },
-        { status: 409, headers: corsHeaders }
-      );
-    }
+    // 2. Create the Inquiry
+    const inquiry = await Inquiry.create({
+      parentName,
+      childClass,
+      whatsapp,
+      channelId,
+      channelName
+    });
 
-    const inquiry = await Inquiry.create({ parentName, childClass, whatsapp });
-    
-    return NextResponse.json(
-      { success: true, inquiry },
-      { status: 201, headers: corsHeaders }
+    // 3. Increment the Channel metrics (Always use the ID for the update!)
+    await Channel.findByIdAndUpdate(
+      channelId,
+      { $inc: { leads: 1 } }
     );
+
+    return NextResponse.json({ success: true, inquiry }, { status: 201 });
   } catch (error) {
     console.error(error);
-    return NextResponse.json(
-      { success: false, error: 'Server error' },
-      { status: 500, headers: corsHeaders }
-    );
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
 

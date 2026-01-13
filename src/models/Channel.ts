@@ -1,18 +1,3 @@
-// // lib/models/Channel.ts
-// import mongoose from 'mongoose';
-
-// const ChannelSchema = new mongoose.Schema({
-//   name: { type: String, required: true },
-//   type: { type: String, required: true },
-//   description: String,
-//   sourceCategory: String,
-//   trackingId: String,
-//   imageUrl: String, // From Cloudinary
-//   isActive: { type: Boolean, default: true },
-// }, { timestamps: true });
-
-// export const Channel = mongoose.models.Channel || mongoose.model('Channel', ChannelSchema);
-
 // lib/models/Channel.ts
 import mongoose from 'mongoose';
 
@@ -21,7 +6,7 @@ const ChannelSchema = new mongoose.Schema({
   type: { 
     type: String, 
     required: true, 
-    enum: ['digital', 'person', 'offline'] // Matches your UI types
+    enum: ['digital', 'offline', 'team'] // Matches your UI types
   },
   status: { 
     type: String, 

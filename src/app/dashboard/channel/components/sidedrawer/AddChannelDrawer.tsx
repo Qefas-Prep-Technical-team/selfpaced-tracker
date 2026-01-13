@@ -14,7 +14,7 @@ interface ChannelFormData {
   type: 'digital' | 'offline' | 'team'
   description: string
   sourceCategory: 'paid-social' | 'organic-search' | 'direct' | 'referral'
-  isActive: boolean
+  isActive: 'active' | 'paused' | 'archived'
 }
 
 const CHANNEL_TYPES = [
@@ -45,7 +45,7 @@ export function AddChannelDrawer({ isOpen, onClose, onSave }: AddChannelDrawerPr
       type: 'digital',
       description: '',
       sourceCategory: 'paid-social',
-      isActive: true
+      isActive: 'active'
     }
   })
 
@@ -163,8 +163,8 @@ export function AddChannelDrawer({ isOpen, onClose, onSave }: AddChannelDrawerPr
             <FormToggle
               label="Active Status"
               description="Enable data acquisition immediately"
-              checked={form.watch('isActive')}
-              onChange={(checked) => form.setValue('isActive', checked)}
+              checked={form.watch('isActive') === 'active'}
+              onChange={(checked) => form.setValue('isActive', checked ?"active":"paused")}
             />
           </section>
         </div>

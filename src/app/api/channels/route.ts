@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import cloudinary from '@/lib/cloudinary';
 import dbConnect from '@/lib/mongodb';
 import { Channel } from '@/models/Channel';
@@ -144,5 +144,43 @@ export async function GET(req: NextRequest) {
       { error: 'Failed to fetch channels' },
       { status: 500 }
     )
+  }
+}
+
+// DELETE /api/channels?id=CHANNEL_ID
+export async function DELETE(req: NextRequest) {
+  try {
+    await dbConnect();
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'Channel ID is required' }, { status: 400 });
+    }
+
+    const channel = await Channel.findById(id);
+    if (!channel) {
+      return NextResponse.json({ error: 'Channel not found' }, { status: 404 });
+    }
+
+    // Delete Cloudinary image if it exists
+    if (channel.imageUrl) {
+      // Extract public_id from URL
+      const publicIdMatch = channel.imageUrl.match(/\/([^\/]+)\.(jpg|png|gif|webp)$/);
+      const public_id = publicIdMatch ? `channels/${publicIdMatch[1]}` : null;
+
+      if (public_id) {
+        await cloudinary.uploader.destroy(public_id, { resource_type: 'image' });
+      }
+    }
+
+    await Channel.findByIdAndDelete(id);
+
+    return NextResponse.json({ message: 'Channel deleted successfully' }, { status: 200 });
+
+  } catch (error: any) {
+    console.error('DELETE Channel Error:', error);
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
