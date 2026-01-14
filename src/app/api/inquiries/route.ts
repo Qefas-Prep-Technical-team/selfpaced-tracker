@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/api/inquiries/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
@@ -32,31 +33,43 @@ export async function POST(req: NextRequest) {
          
       )
     }
+// app/api/inquiries/route.ts
 
-    // 2. Check if inquiry already exists
-    const existingInquiry = await Inquiry.findOne({
-      parentName: parentName.trim(),
-      whatsapp: whatsapp.trim(),
-    })
+// ... existing code ...
 
-    if (existingInquiry) {
-      return NextResponse.json(
-        {
-          error: 'This parent with the same WhatsApp number already exists',
-        },
-        { status: 409,headers: corsHeaders }, // Conflict
-         
-      )
-    }
+const normalizedWhatsapp = whatsapp.trim();
+const normalizedName = parentName.trim().toLowerCase();
+
+// CHECK 1: WhatsApp Uniqueness
+const existingPhone = await Inquiry.findOne({ whatsapp: normalizedWhatsapp });
+if (existingPhone) {
+  return NextResponse.json(
+    { error: 'This WhatsApp number is already registered' },
+    { status: 409, headers: corsHeaders }
+  );
+}
+
+// CHECK 2: Name Uniqueness (Add this part)
+const existingName = await Inquiry.findOne({ parentNameNormalized: normalizedName });
+if (existingName) {
+  return NextResponse.json(
+    { error: 'A parent with this name is already registered' },
+    { status: 409, headers: corsHeaders }
+  );
+}
+
+// ... continue to create inquiry ...
 
     // 3. Create the inquiry
-    const inquiry = await Inquiry.create({
-      parentName: parentName.trim(),
-      childClass,
-      whatsapp: whatsapp.trim(),
-      channelId,
-      channelName,
-    })
+   const inquiry = await Inquiry.create({
+  parentName: parentName.trim(),
+  parentNameNormalized: normalizedName,
+  childClass,
+  whatsapp: whatsapp.trim(),
+  channelId,
+  channelName,
+});
+
 
     // 4. Increment channel leads
     await Channel.findByIdAndUpdate(channelId, {
@@ -68,14 +81,20 @@ export async function POST(req: NextRequest) {
       { status: 201,headers: corsHeaders },
       
     )
-  } catch (error) {
-    console.error(error)
+  } catch (error: any) {
+  if (error.code === 11000) {
     return NextResponse.json(
-      { error: 'Server error' },
-      { status: 500,headers: corsHeaders },
-     
-    )
+      { error: 'This parent name is already registered' },
+      { status: 409, headers: corsHeaders }
+    );
   }
+
+  console.error(error);
+  return NextResponse.json(
+    { error: 'Server error' },
+    { status: 500, headers: corsHeaders }
+  );
+}
 }
 
 // Do the same for GET...
