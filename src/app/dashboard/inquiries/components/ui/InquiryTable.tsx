@@ -17,6 +17,14 @@ import {
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { InquiryTableSkeleton } from './InquiryTableSkeleton'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
+import { Eye, Pencil, Trash2 } from "lucide-react"
+import { useInquiryMutations } from '../useInquiryMutations'
 
 
 
@@ -101,7 +109,8 @@ export function InquiryTable() {
   },
 
 });
-console.log(data)
+const { editInquiry, deleteInquiry } = useInquiryMutations()
+
 const inquiries = data?.data ?? [];
 const totalPages = data?.meta.totalPages ?? 1;
 function formatDate(dateString: string) {
@@ -141,6 +150,21 @@ function getSourceIcon(channelName: string) {
 if (isLoading) {
   return <InquiryTableSkeleton />
 }
+const handleView = (inquiry: any) => {
+  console.log("View inquiry:", inquiry)
+  // router.push(`/dashboard/inquiries/${inquiry._id}`)
+}
+
+const handleEdit = (inquiry: any) => {
+  console.log("Edit inquiry:", inquiry)
+  // open edit modal
+}
+
+const handleDelete = (id: string) => {
+  console.log("Delete inquiry:", id)
+  // confirm → delete mutation
+}
+
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
       {/* Toolbar */}
@@ -252,11 +276,38 @@ if (isLoading) {
                 {formatDate(inquiry.createdAt)}
                 </td>
                 
-                <td className="px-6 py-4 whitespace-nowrap text-right">
-                  <Button variant="ghost" size="sm">
-                    <MoreVertical size={20} />
-                  </Button>
-                </td>
+ <td className="px-6 py-4 text-right">
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button variant="ghost" size="md">
+        <MoreVertical size={18} />
+      </Button>
+    </DropdownMenuTrigger>
+
+    <DropdownMenuContent align="end">
+      <DropdownMenuItem
+        onClick={() => {
+          editInquiry.mutate({
+            id: inquiry._id,
+            data: {
+              status: "contacted",
+            },
+          })
+        }}
+      >
+        Edit
+      </DropdownMenuItem>
+
+      <DropdownMenuItem
+        className="text-red-600 focus:text-red-600"
+        onClick={() => deleteInquiry.mutate(inquiry._id)}
+      >
+        Delete
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+</td>
+
               </tr>
             ))}
           </tbody>
