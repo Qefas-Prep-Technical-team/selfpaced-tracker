@@ -6,7 +6,7 @@ import UserProfile from './UserProfile'
 const navItems = [
   { icon: 'dashboard', label: 'Dashboard', link: "/dashboard/" },
   { icon: 'mail', label: 'Inbox', link: "/dashboard/inbox" },
-  { icon: 'contacts', label: 'Contacts', link: "/dashboard/contacts" },
+  { icon: 'contacts', label: 'inquiries', link: "/dashboard/inquiries" },
   { icon: 'campaign', label: 'Newsletters', link: "/dashboard/newsletters" },
   { icon: 'bar_chart', label: 'Analytics', link: "/dashboard/analytics" },
   { icon: 'settings_input_antenna', label: 'Channel', link: "/dashboard/channel" },

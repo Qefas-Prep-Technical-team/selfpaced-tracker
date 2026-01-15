@@ -97,19 +97,43 @@ if (existingName) {
 }
 }
 
-// Do the same for GET...
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     await dbConnect();
-    const inquiries = await Inquiry.find().sort({ createdAt: -1 });
+
+    const { searchParams } = new URL(req.url);
+
+    const page = Math.max(parseInt(searchParams.get("page") || "1", 10), 1);
+    const limit = Math.max(parseInt(searchParams.get("limit") || "10", 10), 1);
+
+    const skip = (page - 1) * limit;
+
+    const [inquiries, total] = await Promise.all([
+      Inquiry.find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Inquiry.countDocuments(),
+    ]);
+
     return NextResponse.json(
-      { success: true, inquiries },
+      {
+        success: true,
+        data: inquiries,
+        meta: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      },
       { headers: corsHeaders }
     );
   } catch (error) {
-    console.error(error);
+    console.error("GET Inquiries Error:", error);
     return NextResponse.json(
-      { success: false, error: 'Server error' },
+      { success: false, error: "Server error" },
       { status: 500, headers: corsHeaders }
     );
   }
