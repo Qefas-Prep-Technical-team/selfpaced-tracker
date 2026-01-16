@@ -18,9 +18,26 @@ const fetchLeads = async () => {
     return res.json()
 }
 
-const ConversationList: FC<ConversationListProps> = ({
-    selectedContact,
-    onSelectContact,
+// Define the Contact type (or import it if you have it in a separate file)
+interface Contact {
+    id: string
+    name: string
+    email: string
+    avatar: string
+    status: 'online' | 'offline' | 'away'
+    role?: string
+}
+
+interface ConversationListProps {
+    contacts: Contact[]; // <--- ADD THIS LINE
+    selectedContact: string;
+    onSelectContact: (id: string) => void;
+}
+
+const ConversationList: FC<ConversationListProps> = ({ 
+    contacts, // <--- AND DESTRUCTURE IT HERE
+    selectedContact, 
+    onSelectContact 
 }) => {
     const queryClient = useQueryClient()
     const { data: conversations, isLoading } = useQuery({
@@ -42,7 +59,7 @@ const ConversationList: FC<ConversationListProps> = ({
     console.log(conversations)
 
     return (
-        <aside className="w-80 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col shrink-0">
+        <aside className="w-80 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col shrink-0 overflow-hidden">
             <div className="p-4 flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                     <h1 className="text-[#0d141b] dark:text-white text-lg font-bold">Conversations</h1>
