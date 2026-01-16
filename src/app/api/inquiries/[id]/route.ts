@@ -13,15 +13,16 @@ const corsHeaders = {
 export async function OPTIONS() {
   return NextResponse.json({}, { headers: corsHeaders })
 }
-
+// 1. Updated GET
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // Define as Promise
 ) {
   try {
+    const { id } = await params; // Await the params
     await dbConnect()
 
-    const inquiry = await Inquiry.findById(params.id)
+    const inquiry = await Inquiry.findById(id)
 
     if (!inquiry) {
       return NextResponse.json(
@@ -43,18 +44,19 @@ export async function GET(
   }
 }
 
-
+// 2. Updated PATCH
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // Define as Promise
 ) {
   try {
+    const { id } = await params; // Await the params
     await dbConnect()
     const body = await req.json()
 
     const { parentName, childClass, whatsapp, channelId, channelName, status } = body
 
-    const inquiry = await Inquiry.findById(params.id)
+    const inquiry = await Inquiry.findById(id)
     if (!inquiry) {
       return NextResponse.json(
         { error: "Inquiry not found" },
@@ -62,81 +64,50 @@ export async function PATCH(
       )
     }
 
-    // Normalize
     if (parentName) {
       inquiry.parentName = parentName.trim()
       inquiry.parentNameNormalized = parentName.trim().toLowerCase()
     }
-
     if (whatsapp) inquiry.whatsapp = whatsapp.trim()
     if (childClass) inquiry.childClass = childClass
     if (status) inquiry.status = status
 
-    // Handle channel change
     if (channelId && channelId !== inquiry.channelId.toString()) {
       await Channel.findByIdAndUpdate(inquiry.channelId, { $inc: { leads: -1 } })
       await Channel.findByIdAndUpdate(channelId, { $inc: { leads: 1 } })
-
       inquiry.channelId = channelId
       inquiry.channelName = channelName
     }
 
     await inquiry.save()
-
-    return NextResponse.json(
-      { success: true, inquiry },
-      { headers: corsHeaders }
-    )
+    return NextResponse.json({ success: true, inquiry }, { headers: corsHeaders })
   } catch (error: any) {
     if (error.code === 11000) {
-      return NextResponse.json(
-        { error: "Duplicate field detected" },
-        { status: 409, headers: corsHeaders }
-      )
+      return NextResponse.json({ error: "Duplicate" }, { status: 409, headers: corsHeaders })
     }
-
-    console.error("PATCH Inquiry Error:", error)
-    return NextResponse.json(
-      { error: "Server error" },
-      { status: 500, headers: corsHeaders }
-    )
+    return NextResponse.json({ error: "Server error" }, { status: 500, headers: corsHeaders })
   }
 }
 
-
+// 3. Updated DELETE
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // Define as Promise
 ) {
-    console.log("DELETE Inquiry ID:", params.id)
   try {
+    const { id } = await params; // Await the params
     await dbConnect()
 
-    const inquiry = await Inquiry.findById(params.id)
-
+    const inquiry = await Inquiry.findById(id)
     if (!inquiry) {
-      return NextResponse.json(
-        { error: "Inquiry not found" },
-        { status: 404, headers: corsHeaders }
-      )
+      return NextResponse.json({ error: "Inquiry not found" }, { status: 404, headers: corsHeaders })
     }
 
-    // Reduce channel lead count
-    await Channel.findByIdAndUpdate(inquiry.channelId, {
-      $inc: { leads: -1 },
-    })
+    await Channel.findByIdAndUpdate(inquiry.channelId, { $inc: { leads: -1 } })
+    await Inquiry.findByIdAndDelete(id)
 
-    await Inquiry.findByIdAndDelete(params.id)
-
-    return NextResponse.json(
-      { success: true, message: "Inquiry deleted" },
-      { headers: corsHeaders }
-    )
+    return NextResponse.json({ success: true, message: "Deleted" }, { headers: corsHeaders })
   } catch (error) {
-    console.error("DELETE Inquiry Error:", error)
-    return NextResponse.json(
-      { error: "Server error" },
-      { status: 500, headers: corsHeaders }
-    )
+    return NextResponse.json({ error: "Server error" }, { status: 500, headers: corsHeaders })
   }
 }

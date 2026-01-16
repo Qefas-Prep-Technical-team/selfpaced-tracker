@@ -104,7 +104,7 @@ export function InquiryTable() {
     const { data, isLoading } = useQuery({
   queryKey: ["inquiries", page],
   queryFn: async () => {
-    const res = await fetch(`/api/inquiries?page=${page}&limit=5`);
+    const res = await fetch(`/api/inquiries?page=${page}&limit=10`);
     return res.json();
   },
 
@@ -161,7 +161,8 @@ const handleEdit = (inquiry: any) => {
 }
 
 const handleDelete = (id: string) => {
-  console.log("Delete inquiry:", id)
+  console.log(id)
+ deleteInquiry.mutate(id)
   // confirm → delete mutation
 }
 
@@ -300,7 +301,7 @@ const handleDelete = (id: string) => {
 
       <DropdownMenuItem
         className="text-red-600 focus:text-red-600"
-        onClick={() => deleteInquiry.mutate(inquiry._id)}
+        onClick={() => handleDelete(inquiry._id)}
       >
         Delete
       </DropdownMenuItem>
