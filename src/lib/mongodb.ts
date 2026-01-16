@@ -21,7 +21,6 @@ const cache = global.mongooseCache || { conn: null, promise: null };
 
 async function dbConnect(): Promise<typeof mongoose> {
   if (cache.conn) return cache.conn;
-  console.log(MONGODB_URI);
 
   if (!cache.promise) {
     cache.promise = mongoose.connect(MONGODB_URI).then((mongoose) => mongoose);
