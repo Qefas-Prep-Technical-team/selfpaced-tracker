@@ -1,11 +1,12 @@
 import ChatLayout from "./components/ChatLayout";
-import TopNavBar from "./components/TopNavBar";
-
 
 export default function LiveChatPage() {
     return (
-        <div className="flex h-screen w-full flex-col">
-
+        // Locks the outer container to exactly the screen size
+        <div className="flex h-screen w-full flex-col overflow-hidden bg-background">
+            {/* If you have a Nav, put it here */}
+            
+            {/* This container ensures ChatLayout fills the remaining height */}
             <ChatLayout />
         </div>
     )

@@ -1,56 +1,76 @@
-import StatCard, { StatCardProps } from './StatCard'
+'use client'
+import { useEffect, useState } from 'react'
+import StatCard from './StatCard'
 import QuickActions from './QuickActions'
 import ActivityFeed from './ActivityFeed'
+import useDashboardStats from './hook'
+import StatCardSkeleton from './ui/StatCardSkeleton'
+import { DashboardStateHandler } from './ui/DashboardStates'
 
-const stats: StatCardProps[] = [
+export default function Dashboard() {
+  const { data, isLoading, error } = useDashboardStats()
+  
+
+  if (isLoading) {
+    return <StatCardSkeleton/>
+  }
+  if (error) {
+    return <div>Error loading dashboard stats.</div>
+  }
+    if (!data) {  
+    return <div>No data available.</div>
+  }
+
+// Inside your Dashboard component
+const stats = [
   {
     title: 'Newsletter Subscribers',
-    value: '12,480',
-    change: '+12.5%',
-    trend: 'up',
+    ...data.newsletter, // Spreads value, change, and trend
     icon: 'groups',
     label: 'vs last month',
   },
   {
     title: 'Contact Sign-ups',
-    value: '1,245',
-    change: '-2.1%',
-    trend: 'down',
+    ...data.inquiries,
     icon: 'person_add',
     label: 'vs last month',
   },
   {
-    title: 'Active WhatsApp Chats',
-    value: '42',
-    change: '-5.3%',
-    trend: 'down',
+    title: 'Monthly Active Chats',
+    ...data.activeChats,
     icon: 'forum',
-    label: 'live now',
+    label: 'last 30 days',
   },
   {
     title: 'AI Success Rate',
-    value: '94.2%',
-    change: '+4.8%',
-    trend: 'up',
+    ...data.aiRate,
     icon: 'psychology',
     label: 'automation efficiency',
   },
-] as const
+]
 
-export default function Dashboard() {
   return (
     <div className="p-8 space-y-8">
-      {/* Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => (
-          <StatCard key={stat.title} {...stat} />
-        ))}
+        <DashboardStateHandler
+  data={data}
+  isLoading={isLoading}
+  error={error}
+  onRetry={() => {}}
+>
+
+
+      {stats.map((stat) => (
+  <StatCard 
+    key={stat.title} 
+    {...stat} 
+    // This line solves the error
+    trend={stat.trend as "up" | "down"} 
+  />
+))}
+</DashboardStateHandler>
       </div>
-
-      {/* Quick Actions */}
       <QuickActions />
-
-      {/* Recent Activity Feed */}
       <ActivityFeed />
     </div>
   )

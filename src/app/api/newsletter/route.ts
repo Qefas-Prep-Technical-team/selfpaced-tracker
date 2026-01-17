@@ -2,14 +2,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import mongoose from 'mongoose';
+import Newsletter from '@/models/Newsletter';
 
 // Simple Schema for Newsletter (You can move this to @/models/Newsletter.ts later)
-const NewsletterSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  subscribedAt: { type: Date, default: Date.now },
-});
 
-const Newsletter = mongoose.models.Newsletter || mongoose.model('Newsletter', NewsletterSchema);
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

@@ -57,7 +57,9 @@ export default function ChatLayout() {
             <ChatWindow contactId={selectedContact} />
 
             {/* Right Panel - Contact Info */}
-            {selectedContactData && <ContactPanel contact={selectedContactData} />}
+            {selectedContactData && <ContactPanel 
+            // contact={selectedContactData}
+             />}
         </main>
     )
 }

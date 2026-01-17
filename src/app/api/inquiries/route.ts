@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/api/inquiries/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Inquiry from '@/models/Inquiry';
+import { Channel } from '@/models/Channel';
 
 // Define headers clearly
 const corsHeaders = {
@@ -15,57 +17,123 @@ export async function OPTIONS() {
   return NextResponse.json({}, { headers: corsHeaders });
 }
 
+// app/api/inquiries/route.ts
 export async function POST(req: NextRequest) {
   try {
-    await dbConnect();
-    
-    const body = await req.json();
-    const { parentName, childClass, whatsapp } = body;
+    await dbConnect()
+    const body = await req.json()
 
-    if (!parentName || !childClass || !whatsapp) {
+    const { parentName, childClass, whatsapp, channelId, channelName } = body
+
+    // 1. Basic validation
+    if (!parentName || !whatsapp || !channelId || !channelName) {
       return NextResponse.json(
-        { success: false, error: 'All fields are required' },
-        { status: 400, headers: corsHeaders }
-      );
+        { error: 'Missing required fields' },
+        { status: 400,headers: corsHeaders },
+         
+      )
     }
+// app/api/inquiries/route.ts
 
-    // Check for existing
-    const existing = await Inquiry.findOne({ $or: [{ parentName }, { whatsapp }] });
-    if (existing) {
-      return NextResponse.json(
-        { success: false, error: 'Inquiry already exists' },
-        { status: 409, headers: corsHeaders }
-      );
-    }
+// ... existing code ...
 
-    const inquiry = await Inquiry.create({ parentName, childClass, whatsapp });
-    
-    return NextResponse.json(
-      { success: true, inquiry },
-      { status: 201, headers: corsHeaders }
-    );
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json(
-      { success: false, error: 'Server error' },
-      { status: 500, headers: corsHeaders }
-    );
-  }
+const normalizedWhatsapp = whatsapp.trim();
+const normalizedName = parentName.trim().toLowerCase();
+
+// CHECK 1: WhatsApp Uniqueness
+const existingPhone = await Inquiry.findOne({ whatsapp: normalizedWhatsapp });
+if (existingPhone) {
+  return NextResponse.json(
+    { error: 'This WhatsApp number is already registered' },
+    { status: 409, headers: corsHeaders }
+  );
 }
 
-// Do the same for GET...
-export async function GET() {
+// CHECK 2: Name Uniqueness (Add this part)
+const existingName = await Inquiry.findOne({ parentNameNormalized: normalizedName });
+if (existingName) {
+  return NextResponse.json(
+    { error: 'A parent with this name is already registered' },
+    { status: 409, headers: corsHeaders }
+  );
+}
+
+// ... continue to create inquiry ...
+
+    // 3. Create the inquiry
+   const inquiry = await Inquiry.create({
+  parentName: parentName.trim(),
+  parentNameNormalized: normalizedName,
+  childClass,
+  whatsapp: whatsapp.trim(),
+  channelId,
+  channelName,
+});
+
+
+    // 4. Increment channel leads
+    await Channel.findByIdAndUpdate(channelId, {
+      $inc: { leads: 1 },
+    })
+
+    return NextResponse.json(
+      { success: true, inquiry },
+      { status: 201,headers: corsHeaders },
+      
+    )
+  } catch (error: any) {
+  if (error.code === 11000) {
+    return NextResponse.json(
+      { error: 'This parent name is already registered' },
+      { status: 409, headers: corsHeaders }
+    );
+  }
+
+  console.error(error);
+  return NextResponse.json(
+    { error: 'Server error' },
+    { status: 500, headers: corsHeaders }
+  );
+}
+}
+
+export async function GET(req: NextRequest) {
   try {
     await dbConnect();
-    const inquiries = await Inquiry.find().sort({ createdAt: -1 });
+
+    const { searchParams } = new URL(req.url);
+
+    const page = Math.max(parseInt(searchParams.get("page") || "1", 10), 1);
+    const limit = Math.max(parseInt(searchParams.get("limit") || "10", 10), 1);
+
+    const skip = (page - 1) * limit;
+
+    const [inquiries, total] = await Promise.all([
+      Inquiry.find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Inquiry.countDocuments(),
+    ]);
+
     return NextResponse.json(
-      { success: true, inquiries },
+      {
+        success: true,
+        data: inquiries,
+        meta: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      },
       { headers: corsHeaders }
     );
   } catch (error) {
-    console.error(error);
+    console.error("GET Inquiries Error:", error);
     return NextResponse.json(
-      { success: false, error: 'Server error' },
+      { success: false, error: "Server error" },
       { status: 500, headers: corsHeaders }
     );
   }
