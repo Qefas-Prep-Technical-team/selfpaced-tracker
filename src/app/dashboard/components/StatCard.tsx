@@ -21,9 +21,9 @@ export default function StatCard({
     <div className="bg-white dark:bg-slate-900 flex flex-col gap-2 rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
       <div className="flex justify-between items-start">
         <p className="text-[#4c739a] text-sm font-medium">{title}</p>
-        <span className="material-symbols-outlined text-primary">
+        {/* <span className="material-symbols-outlined text-primary">
           {icon}
-        </span>
+        </span> */}
       </div>
       
       <p className="text-2xl font-bold">{value}</p>

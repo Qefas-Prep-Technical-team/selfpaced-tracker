@@ -57,12 +57,12 @@ export default function ParentInquiriesPage() {
 
         {/* Stats Grid */}
         <StatsGrid />
-         <Button 
+         {/* <Button 
               variant="primary" 
               onClick={() => setIsModalOpen(true)}
             >
               View Details
-            </Button>
+            </Button> */}
 
         {/* Inquiry Table */}
         <InquiryTable setIsModalOpen={setIsModalOpen} setId={setId} />
