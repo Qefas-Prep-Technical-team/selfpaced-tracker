@@ -44,9 +44,16 @@ export default function RootLayout({
           <NextTopLoader showSpinner={false} />
           {children}
           <ToastContainer 
-          position="top-right"
-          autoClose={3000}
-          theme="colored" // or "dark" to match your UI
+          position="bottom-right"
+          autoClose={2000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="dark" // or "light" depending on your dashboard
         />
         </ThemeClientProvider>
         </QueryProvider>

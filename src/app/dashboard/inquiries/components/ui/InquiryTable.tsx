@@ -14,7 +14,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import React from 'react'
+import React, { Dispatch, SetStateAction } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { InquiryTableSkeleton } from './InquiryTableSkeleton'
 import {
@@ -99,7 +99,7 @@ const sourceIcons: Record<string, React.ElementType> = {
   'Referral': Users,
 }
 
-export function InquiryTable() {
+export function InquiryTable({setIsModalOpen,setId}:{setIsModalOpen:Dispatch<SetStateAction<boolean>>,setId:Dispatch<SetStateAction<string>>}) {
     const [page, setPage] = React.useState(1);
     const { data, isLoading } = useQuery({
   queryKey: ["inquiries", page],
@@ -150,13 +150,15 @@ function getSourceIcon(channelName: string) {
 if (isLoading) {
   return <InquiryTableSkeleton />
 }
-const handleView = (inquiry: any) => {
-  console.log("View inquiry:", inquiry)
-  // router.push(`/dashboard/inquiries/${inquiry._id}`)
-}
+
 
 const handleEdit = (inquiry: any) => {
   console.log("Edit inquiry:", inquiry)
+  // open edit modal
+}
+const handleView = (inquiry: any) => {
+  setIsModalOpen(true)
+  setId(inquiry._id)
   // open edit modal
 }
 
@@ -235,7 +237,7 @@ const handleDelete = (id: string) => {
                     <div className="size-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
                       {getInitials(inquiry.parentName)}
                     </div>
-                    <span className="text-sm font-semibold">
+                    <span onClick={()=>handleView(inquiry)} className="text-sm font-semibold cursor-pointer">
                       {inquiry.parentName}
                     </span>
                   </div>
@@ -269,7 +271,7 @@ const handleDelete = (id: string) => {
                   <StatusBadge status={inquiry.status}>
                     {inquiry.status === 'new' && 'New Inquiry'}
                     {inquiry.status === 'contacted' && 'Contacted'}
-                    {inquiry.status === 'followup' && 'Follow-up'}
+                    {inquiry.status === "follow-up" && 'Follow-up'}
                   </StatusBadge>
                 </td>
                 
@@ -280,12 +282,17 @@ const handleDelete = (id: string) => {
  <td className="px-6 py-4 text-right">
   <DropdownMenu>
     <DropdownMenuTrigger asChild>
-      <Button variant="ghost" size="md">
+      <Button variant="ghost" size="md" className='cursor-pointer '>
         <MoreVertical size={18} />
       </Button>
     </DropdownMenuTrigger>
 
     <DropdownMenuContent align="end">
+      <DropdownMenuItem
+      onClick={()=>handleView(inquiry)}
+      >
+        View
+      </DropdownMenuItem>
       <DropdownMenuItem
         onClick={() => {
           editInquiry.mutate({
