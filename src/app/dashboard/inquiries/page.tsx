@@ -70,7 +70,6 @@ export default function ParentInquiriesPage() {
          id={id}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        inquiry={mockInquiry}
         onStatusChange={handleStatusChange}
         onEdit={handleEdit}
       />

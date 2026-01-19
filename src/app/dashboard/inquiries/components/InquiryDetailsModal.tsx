@@ -149,7 +149,6 @@ interface InquiryData {
 interface InquiryDetailsModalProps {
   isOpen: boolean
   onClose: () => void
-  inquiry: InquiryData
   onStatusChange?: (status: string) => void
   onEdit?: () => void
   id: string
