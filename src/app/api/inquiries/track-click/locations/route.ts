@@ -1,3 +1,4 @@
+// app/api/inquiries/track-click/locations/route.ts
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Click from "@/models/Click";
@@ -5,18 +6,17 @@ import Click from "@/models/Click";
 export async function GET() {
   try {
     await dbConnect();
-
     const totalClicks = await Click.countDocuments();
 
-    const locationData = await Click.aggregate([
+    const cityData = await Click.aggregate([
       {
         $group: {
-          _id: "$country",
+          _id: "$city", // Changed from $country to $city
           count: { $sum: 1 }
         }
       },
       { $sort: { count: -1 } },
-      { $limit: 5 }, // Get top 5 countries
+      { $limit: 6 }, // Show top 6 cities
       {
         $project: {
           _id: 0,
@@ -28,8 +28,8 @@ export async function GET() {
       }
     ]);
 
-    return NextResponse.json({ success: true, data: locationData });
+    return NextResponse.json({ success: true, data: cityData });
   } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch locations" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch city stats" }, { status: 500 });
   }
 }

@@ -52,7 +52,7 @@ const statsConfig = [
   }
 ];
   return (
-      <main className="max-w-[1200px] mx-auto px-6 md:px-10 py-8">
+      <main className="max-w-300 mx-auto px-6 md:px-10 py-8">
         <DashboardControls />
 
         {/* Stats Grid */}
