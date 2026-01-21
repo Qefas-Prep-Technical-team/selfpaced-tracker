@@ -14,7 +14,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import React from 'react'
+import React, { Dispatch, SetStateAction } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { InquiryTableSkeleton } from './InquiryTableSkeleton'
 import {
@@ -39,67 +39,10 @@ interface Inquiry {
   dateCreated: string
 }
 
-const inquiries: Inquiry[] = [
-  {
-    id: 1,
-    parentName: 'Robert Fox',
-    initials: 'RF',
-    phone: '+1 (555) 012-3456',
-    childClass: 'Grade 2',
-    source: 'Facebook Ads',
-    status: 'new',
-    dateCreated: 'Oct 24, 2023',
-  },
-  {
-    id: 2,
-    parentName: 'Jane Cooper',
-    initials: 'JC',
-    phone: '+1 (555) 098-7654',
-    childClass: 'Kindergarten',
-    source: 'Radio Spot',
-    status: 'contacted',
-    dateCreated: 'Oct 23, 2023',
-  },
-  {
-    id: 3,
-    parentName: 'Wade Warren',
-    initials: 'WW',
-    phone: '+1 (555) 432-1098',
-    childClass: 'Grade 1',
-    source: 'Referral',
-    status: 'followup',
-    dateCreated: 'Oct 22, 2023',
-  },
-  {
-    id: 4,
-    parentName: 'Esther Howard',
-    initials: 'EH',
-    phone: '+1 (555) 765-4321',
-    childClass: 'Grade 4',
-    source: 'Google Ads',
-    status: 'new',
-    dateCreated: 'Oct 21, 2023',
-  },
-  {
-    id: 5,
-    parentName: 'Cameron Williamson',
-    initials: 'CW',
-    phone: '+1 (555) 321-0987',
-    childClass: 'Grade 2',
-    source: 'Facebook Ads',
-    status: 'contacted',
-    dateCreated: 'Oct 20, 2023',
-  },
-]
 
-const sourceIcons: Record<string, React.ElementType> = {
-  'Facebook Ads': Users,
-  'Radio Spot': Radio,
-  'Google Ads': Search,
-  'Referral': Users,
-}
 
-export function InquiryTable() {
+
+export function InquiryTable({setIsModalOpen,setId}:{setIsModalOpen:Dispatch<SetStateAction<boolean>>,setId:Dispatch<SetStateAction<string>>}) {
     const [page, setPage] = React.useState(1);
     const { data, isLoading } = useQuery({
   queryKey: ["inquiries", page],
@@ -111,8 +54,18 @@ export function InquiryTable() {
 });
 const { editInquiry, deleteInquiry } = useInquiryMutations()
 
+// Inside InquiryTable component
 const inquiries = data?.data ?? [];
-const totalPages = data?.meta.totalPages ?? 1;
+const meta = data?.meta; // Store meta to make code cleaner
+
+const totalPages = meta?.totalPages ?? 1;
+const totalCount = meta?.total ?? 0; // Changed 'totalCount' to 'total' to match your backend
+const currentPage = meta?.page ?? 1;
+const limit = meta?.limit ?? 10;
+
+// Calculate range for the "Showing X to Y" text
+const from = totalCount === 0 ? 0 : (currentPage - 1) * limit + 1;
+const to = Math.min(currentPage * limit, totalCount);
 function formatDate(dateString: string) {
   if (!dateString) return "—";
 
@@ -150,13 +103,15 @@ function getSourceIcon(channelName: string) {
 if (isLoading) {
   return <InquiryTableSkeleton />
 }
-const handleView = (inquiry: any) => {
-  console.log("View inquiry:", inquiry)
-  // router.push(`/dashboard/inquiries/${inquiry._id}`)
-}
+
 
 const handleEdit = (inquiry: any) => {
   console.log("Edit inquiry:", inquiry)
+  // open edit modal
+}
+const handleView = (inquiry: any) => {
+  setIsModalOpen(true)
+  setId(inquiry._id)
   // open edit modal
 }
 
@@ -235,7 +190,7 @@ const handleDelete = (id: string) => {
                     <div className="size-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
                       {getInitials(inquiry.parentName)}
                     </div>
-                    <span className="text-sm font-semibold">
+                    <span onClick={()=>handleView(inquiry)} className="text-sm font-semibold cursor-pointer">
                       {inquiry.parentName}
                     </span>
                   </div>
@@ -269,7 +224,7 @@ const handleDelete = (id: string) => {
                   <StatusBadge status={inquiry.status}>
                     {inquiry.status === 'new' && 'New Inquiry'}
                     {inquiry.status === 'contacted' && 'Contacted'}
-                    {inquiry.status === 'followup' && 'Follow-up'}
+                    {inquiry.status === "follow-up" && 'Follow-up'}
                   </StatusBadge>
                 </td>
                 
@@ -280,12 +235,17 @@ const handleDelete = (id: string) => {
  <td className="px-6 py-4 text-right">
   <DropdownMenu>
     <DropdownMenuTrigger asChild>
-      <Button variant="ghost" size="md">
+      <Button variant="ghost" size="md" className='cursor-pointer '>
         <MoreVertical size={18} />
       </Button>
     </DropdownMenuTrigger>
 
     <DropdownMenuContent align="end">
+      <DropdownMenuItem
+      onClick={()=>handleView(inquiry)}
+      >
+        View
+      </DropdownMenuItem>
       <DropdownMenuItem
         onClick={() => {
           editInquiry.mutate({
@@ -317,10 +277,17 @@ const handleDelete = (id: string) => {
 
      {/* Pagination */}
 <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between  gap-3">
+<div className="p-4 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-3">
   <p className="text-xs text-slate-500">
-    Showing 1 to 5 of 1,284 inquiries
+    {totalCount > 0 ? (
+      <>Showing <strong>{from}</strong> to <strong>{to}</strong> of <strong>{totalCount.toLocaleString()}</strong> inquiries</>
+    ) : (
+      "No inquiries found"
+    )}
   </p>
 
+  {/* Pagination Component remains same */}
+</div>
  <Pagination>
   <PaginationContent>
     <PaginationItem>
@@ -330,20 +297,25 @@ const handleDelete = (id: string) => {
       />
     </PaginationItem>
 
-    {[...Array(totalPages)].map((_, i) => {
-      const p = i + 1;
-      return (
-        <PaginationItem key={p}>
-          <PaginationLink
-            isActive={page === p}
-            onClick={() => setPage(p)}
-          >
-            {p}
-          </PaginationLink>
-        </PaginationItem>
-      );
-    })}
-
+ {[...Array(totalPages)].map((_, i) => {
+  const p = i + 1;
+  // Only show first page, last page, and 2 pages around current page
+  if (p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1)) {
+    return (
+      <PaginationItem key={p}>
+        <PaginationLink
+          isActive={page === p}
+          onClick={() => setPage(p)}
+          className="cursor-pointer"
+        >
+          {p}
+        </PaginationLink>
+      </PaginationItem>
+    );
+  }
+  // Optional: Show ellipsis (...) logic here
+  return null;
+})}
     <PaginationItem>
       <PaginationNext
         onClick={() => setPage(p => Math.min(p + 1, totalPages))}

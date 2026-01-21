@@ -17,6 +17,8 @@ import { getChannelIcon, getTypeIcon, getTypeLabel } from '@/utils/channel-icons
 import { ChannelList, useDeleteChannel } from './hook'
 import { Channel } from '../../types'
 import { toast } from 'react-toastify'
+import { SkeletonTable } from './TableSkeleton'
+
 
 const PAGE_SIZE = 5
 
@@ -28,26 +30,26 @@ export function ChannelTable() {
   const [typeFilter, setTypeFilter] = useState<'all' | 'digital' | 'offline' | 'team'>('all')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'paused' | 'archived'>('all')
   const [page, setPage] = useState(1)
+  
   function handleEdit(channel: Channel) {
-  // Open modal or navigate to edit page
-  console.log('Edit channel:', channel)
-}
-
-const deleteMutation = useDeleteChannel();
-
-const handleDelete = (id: string) => {
-  if (confirm('Are you sure you want to delete this channel?')) {
-    deleteMutation.mutate(id, {
-      onSuccess: () => {
-        toast.success('Channel removed');
-      },
-      onError: (error) => {
-        toast.error(error.message);
-      }
-    });
+    // Open modal or navigate to edit page
+    console.log('Edit channel:', channel)
   }
-};
 
+  const deleteMutation = useDeleteChannel();
+
+  const handleDelete = (id: string) => {
+    if (confirm('Are you sure you want to delete this channel?')) {
+      deleteMutation.mutate(id, {
+        onSuccess: () => {
+          toast.success('Channel removed');
+        },
+        onError: (error) => {
+          toast.error(error.message);
+        }
+      });
+    }
+  };
 
   const filteredChannels = useMemo(() => {
     return channels
@@ -168,83 +170,83 @@ const handleDelete = (id: string) => {
         </div>
       ),
     },
-   {
-  header: 'Actions',
-  accessor: (row: Channel) => (
-    <div className="text-right">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm">
-            <MoreVertical size={20} />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => handleEdit(row)}>
-            <Edit size={16} className="mr-2" /> Edit
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleDelete(row._id)}>
-            <Trash size={16} className="mr-2" /> Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  ),
-  className: 'text-right',
-}
+    {
+      header: 'Actions',
+      accessor: (row: Channel) => (
+        <div className="text-right">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <MoreVertical size={20} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleEdit(row)}>
+                <Edit size={16} className="mr-2" /> Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleDelete(row._id)}>
+                <Trash size={16} className="mr-2" /> Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ),
+      className: 'text-right',
+    }
   ]
 
-  if (isLoading) return <p>Loading...</p>
-  if (error) return <p className="text-red-500">Error loading channels</p>
+  // Show skeleton while loading
+if (isLoading) return <SkeletonTable />
+  if (error) return <p className="text-red-500 p-4">Error loading channels</p>
 
   return (
     <div className="bg-white dark:bg-[#111a22] border border-slate-200 dark:border-[#233648] rounded-xl overflow-hidden shadow-sm">
       {/* Filter/Search */}
       <div className="px-6 py-4 border-b border-slate-200 dark:border-[#233648] flex flex-wrap items-center gap-3 justify-between">
-  {/* Search input takes full width on mobile, bigger on desktop */}
-  <div className="flex-1 min-w-[250px]">
-    <Input
-      placeholder="Search channels..."
-      value={search}
-      onChange={(e) => {
-        setSearch(e.target.value)
-        setPage(1)
-      }}
-      className="w-full h-12 text-sm md:text-base" // bigger height and font
-    />
-  </div>
+        {/* Search input takes full width on mobile, bigger on desktop */}
+        <div className="flex-1 min-w-[250px]">
+          <Input
+            placeholder="Search channels..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setPage(1)
+            }}
+            className="w-full h-12 text-sm md:text-base"
+          />
+        </div>
 
-  {/* Filters aligned to the end */}
-  <div className="flex gap-2 flex-wrap mt-2 md:mt-0">
-    <select
-      value={typeFilter}
-      onChange={(e) => {
-        setTypeFilter(e.target.value as any)
-        setPage(1)
-      }}
-      className="rounded-lg border px-3 py-2 text-sm md:text-base"
-    >
-      <option value="all">All Types</option>
-      <option value="digital">Digital</option>
-      <option value="offline">Offline</option>
-      <option value="team">Team-based</option>
-    </select>
+        {/* Filters aligned to the end */}
+        <div className="flex gap-2 flex-wrap mt-2 md:mt-0">
+          <select
+            value={typeFilter}
+            onChange={(e) => {
+              setTypeFilter(e.target.value as any)
+              setPage(1)
+            }}
+            className="rounded-lg border px-3 py-2 text-sm md:text-base"
+          >
+            <option value="all">All Types</option>
+            <option value="digital">Digital</option>
+            <option value="offline">Offline</option>
+            <option value="team">Team-based</option>
+          </select>
 
-    <select
-      value={statusFilter}
-      onChange={(e) => {
-        setStatusFilter(e.target.value as any)
-        setPage(1)
-      }}
-      className="rounded-lg border px-3 py-2 text-sm md:text-base"
-    >
-      <option value="all">All Status</option>
-      <option value="active">Active</option>
-      <option value="paused">Paused</option>
-      <option value="archived">Archived</option>
-    </select>
-  </div>
-</div>
-
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value as any)
+              setPage(1)
+            }}
+            className="rounded-lg border px-3 py-2 text-sm md:text-base"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="paused">Paused</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+      </div>
 
       {/* Table */}
       <div className="overflow-x-auto">
