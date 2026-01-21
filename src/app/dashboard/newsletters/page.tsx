@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/subscribers/page.tsx
 'use client'
 
@@ -6,33 +7,47 @@ import { SubscriptionFlow } from './components/SubscriptionFlow'
 import { SubscriberTable } from './components/SubscriberTable'
 import { Toast } from '../inquiries/components/ui/Toast'
 import StatCard from '../components/StatCard'
-import { stats, subscribers } from './components/subscribers'
+import { Users, UserPlus, TrendingUp } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 
 export default function SubscribersPage() {
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
+  const { data: statsData, isLoading } = useQuery({
+    queryKey: ['newsletter-stats'],
+    queryFn: () => fetch('/api/newsletter/stats').then(res => res.json())
+  });
 
-  const handleCopyEmail = (email: string) => {
-    navigator.clipboard.writeText(email)
-    setToastMessage(`Copied ${email} to clipboard`)
-    setShowToast(true)
-  }
-
-  const handleUnsubscribe = (id: number) => {
-    // Here you would typically make an API call
-    const subscriber = subscribers.find(s => s.id === id)
-    if (subscriber) {
-      setToastMessage(`Unsubscribed ${subscriber.email}`)
-      setShowToast(true)
+  const statsConfig = [
+    {
+      id: 1,
+      title: 'Total Subscribers',
+      value: statsData?.total?.value || '0',
+      change: statsData?.total?.change || '0%',
+      changeType: statsData?.total?.type || 'positive',
+      icon: Users,
+    },
+    {
+      id: 2,
+      title: 'New This Month',
+      value: statsData?.newThisMonth?.value || '0',
+      change: 'Recent joins',
+      changeType: 'positive',
+      icon: UserPlus,
+      progress: statsData?.newThisMonth?.percentage || 0,
+      progressColor: 'bg-indigo-500'
+    },
+    {
+      id: 3,
+      title: 'Avg. Growth Rate',
+      value: `${statsData?.total?.change || '0%'}`,
+      change: 'Overall momentum',
+      changeType: statsData?.total?.type || 'positive',
+      icon: TrendingUp,
     }
-  }
+  ];
 
-  const handleExport = () => {
-    // Here you would typically generate and download a CSV
-    setToastMessage('Export started. You will receive an email shortly.')
-    setShowToast(true)
-  }
-
+ 
   return (
     
       <    >
@@ -52,28 +67,26 @@ export default function SubscribersPage() {
           {/* Subscription Flow */}
           <SubscriptionFlow />
 
-          {/* KPI Stats */}
-         {/* KPI Stats */}
-<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-  {stats.map((stat) => (
-    <StatCard
-      key={stat.id}
-      title={stat.title}
-      value={stat.value}
-      change={stat.change}
-      changeType={stat.changeType} // Pass the changeType
-      icon={stat.icon}             // Pass the icon
-    />
-  ))}
-</div>
-
+          {/* KPI Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {isLoading 
+            ? [1, 2, 3].map(i => <div key={i} className="h-32 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-xl" />)
+            : statsConfig.map((stat) => (
+                <StatCard
+                  key={stat.id}
+                  title={stat.title}
+                  value={stat.value}
+                  change={stat.change}
+                  changeType={stat.changeType as any}
+                  icon={stat.icon}
+                  progress={stat.progress}
+                  progressColor={stat.progressColor}
+                />
+              ))
+          }
+        </div>
           {/* Subscribers Table */}
-          <SubscriberTable
-            subscribers={subscribers}
-            onCopyEmail={handleCopyEmail}
-            onUnsubscribe={handleUnsubscribe}
-            onExport={handleExport}
-          />
+          <SubscriberTable/>
         </div>
       </main>
 
