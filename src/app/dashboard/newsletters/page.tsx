@@ -53,17 +53,19 @@ export default function SubscribersPage() {
           <SubscriptionFlow />
 
           {/* KPI Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {stats.map((stat) => (
-              <StatCard
-                key={stat.id}
-                title={stat.title}
-                value={stat.value}
-                change={stat.change}
-                // icon={stat.icon}
-              />
-            ))}
-          </div>
+         {/* KPI Stats */}
+<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+  {stats.map((stat) => (
+    <StatCard
+      key={stat.id}
+      title={stat.title}
+      value={stat.value}
+      change={stat.change}
+      changeType={stat.changeType} // Pass the changeType
+      icon={stat.icon}             // Pass the icon
+    />
+  ))}
+</div>
 
           {/* Subscribers Table */}
           <SubscriberTable

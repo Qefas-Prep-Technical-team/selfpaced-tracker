@@ -1,30 +1,32 @@
 // data/subscribers.ts
-import { 
-  Users, UserPlus, TrendingUp 
-} from 'lucide-react'
+
+import { Users, UserPlus, UserMinus } from 'lucide-react'
 
 export const stats = [
   {
     id: 1,
     title: 'Total Subscribers',
-    value: '12,450',
-    change: '+5.2%',
-    icon: Users
+    value: '1,284',
+    change: '+12.5%',
+    changeType: 'positive' as const, // Add this
+    icon: Users,                   // Add this
   },
   {
     id: 2,
-    title: 'New This Week',
-    value: '+432',
-    change: '+1.5%',
-    icon: UserPlus
+    title: 'New This Month',
+    value: '142',
+    change: '+5.2%',
+    changeType: 'positive' as const, // Add this
+    icon: UserPlus,                // Add this
   },
   {
     id: 3,
-    title: 'Growth Rate',
-    value: '12%',
-    change: '+2.1%',
-    icon: TrendingUp
-  }
+    title: 'Churn Rate',
+    value: '2.4%',
+    change: '-0.4%',
+    changeType: 'negative' as const, // Add this
+    icon: UserMinus,               // Add this
+  },
 ]
 
 export const subscribers = [

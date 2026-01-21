@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { pusherClient } from '@/lib/pusher'
- // Ensure this is your configured pusher-js instance
+import { Button } from './ui/Button' // Assuming you have a reusable Button component
 
 interface Activity {
   event: string
@@ -12,6 +12,8 @@ interface Activity {
   time: string
   status: 'success' | 'needs_action' | 'info'
 }
+
+const PAGE_SIZE = 6 // Set how many activities per page
 
 const statusColors = {
   success: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
@@ -28,6 +30,7 @@ const eventIcons: Record<string, { icon: string; bg: string; text: string }> = {
 
 export default function ActivityFeed() {
   const queryClient = useQueryClient()
+  const [page, setPage] = useState(1)
 
   const { data: activities, isLoading } = useQuery<Activity[]>({
     queryKey: ['activities'],
@@ -38,14 +41,15 @@ export default function ActivityFeed() {
     }
   })
 
+  // Real-time listener
   useEffect(() => {
     const channel = pusherClient.subscribe('dashboard-updates')
     
     channel.bind('new-activity', (newActivity: Activity) => {
-      // Optimistically add the new activity to the top of the list
       queryClient.setQueryData(['activities'], (old: Activity[] | undefined) => {
         const updated = old ? [newActivity, ...old] : [newActivity]
-        return updated.slice(0, 10) // Keep only last 10
+        // You might want to keep a larger buffer for pagination (e.g., 50)
+        return updated.slice(0, 50) 
       })
     })
 
@@ -53,18 +57,28 @@ export default function ActivityFeed() {
       pusherClient.unsubscribe('dashboard-updates')
     }
   }, [queryClient])
+
+  // Pagination Logic
+  const totalActivities = activities?.length || 0
+  const totalPages = Math.ceil(totalActivities / PAGE_SIZE)
   
+  const paginatedActivities = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE
+    return activities?.slice(start, start + PAGE_SIZE) || []
+  }, [activities, page])
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden flex flex-col h-full">
       <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
         <h3 className="font-bold text-lg">Recent Activity Feed</h3>
-        <button className="text-primary text-sm font-semibold hover:underline">View All History</button>
+        <span className="text-xs font-medium text-slate-400">
+            Total: {totalActivities}
+        </span>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
-          <thead className="bg-slate-50 dark:bg-slate-800/50 text-[#4c739a] text-xs font-bold uppercase tracking-wider">
+      <div className="flex-1 overflow-x-auto min-h-0">
+        <table className="w-full text-left border-collapse">
+          <thead className="bg-slate-50 dark:bg-slate-800/50 text-[#4c739a] text-xs font-bold uppercase tracking-wider sticky top-0 z-10">
             <tr>
               <th className="px-6 py-4">Event</th>
               <th className="px-6 py-4">User</th>
@@ -75,28 +89,28 @@ export default function ActivityFeed() {
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {isLoading ? (
-              [...Array(5)].map((_, i) => <ActivitySkeleton key={i} />)
+              [...Array(PAGE_SIZE)].map((_, i) => <ActivitySkeleton key={i} />)
             ) : (
-              activities?.map((activity, index) => (
-                <tr key={index} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors animate-in fade-in slide-in-from-top-2 duration-500">
+              paginatedActivities.map((activity, index) => (
+                <tr key={index} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors animate-in fade-in slide-in-from-top-1 duration-300">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className={`size-8 rounded-full flex items-center justify-center ${eventIcons[activity.event]?.bg || 'bg-slate-100'} ${eventIcons[activity.event]?.text || 'text-slate-500'}`}>
+                      <div className={`size-8 rounded-full flex items-center justify-center shrink-0 ${eventIcons[activity.event]?.bg || 'bg-slate-100'} ${eventIcons[activity.event]?.text || 'text-slate-500'}`}>
                         <span className="material-symbols-outlined text-lg">{eventIcons[activity.event]?.icon || 'event_note'}</span>
                       </div>
-                      <span className="text-sm font-medium">{activity.event}</span>
+                      <span className="text-sm font-medium truncate max-w-[150px]">{activity.event}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-slate-700 dark:text-slate-300">{activity.user}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-slate-700 dark:text-slate-300 truncate">{activity.user}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 text-sm text-[#4c739a]">
                       <span className={`material-symbols-outlined text-base ${activity.channel.color || ''}`}>{activity.channel.icon}</span>
                       {activity.channel.name}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-[#4c739a]">{activity.time}</td>
+                  <td className="px-6 py-4 text-sm text-[#4c739a] whitespace-nowrap">{activity.time}</td>
                   <td className="px-6 py-4 text-right">
-                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${statusColors[activity.status]}`}>
+                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase whitespace-nowrap ${statusColors[activity.status]}`}>
                       {activity.status.replace('_', ' ')}
                     </span>
                   </td>
@@ -105,6 +119,29 @@ export default function ActivityFeed() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
+        <p className="text-xs text-slate-500">
+          Page {page} of {totalPages || 1}
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-3 py-1 text-xs font-bold rounded border border-slate-200 dark:border-slate-700 disabled:opacity-50 hover:bg-white dark:hover:bg-slate-800 transition-colors"
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page >= totalPages}
+            className="px-3 py-1 text-xs font-bold rounded border border-slate-200 dark:border-slate-700 disabled:opacity-50 hover:bg-white dark:hover:bg-slate-800 transition-colors"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -115,7 +152,7 @@ function ActivitySkeleton() {
     <tr className="animate-pulse">
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
-          <div className="size-8 rounded-full bg-slate-200 dark:bg-slate-800" />
+          <div className="size-8 rounded-full bg-slate-200 dark:bg-slate-800 shrink-0" />
           <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
         </div>
       </td>
