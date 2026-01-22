@@ -9,15 +9,15 @@ const layout = ({
     children: React.ReactNode;
 }>) => {
     return (
-        // <ProtectedUserRoute>
-        <div className="flex min-h-screen">
-            <Sidebar />
-            <main className="flex-1 flex flex-col">
-                <Header />
-                {children}
-            </main>
-        </div>
-        // </ProtectedUserRoute>
+        <ProtectedUserRoute>
+            <div className="flex min-h-screen">
+                <Sidebar />
+                <main className="flex-1 flex flex-col">
+                    <Header />
+                    {children}
+                </main>
+            </div>
+        </ProtectedUserRoute>
     );
 };
 
