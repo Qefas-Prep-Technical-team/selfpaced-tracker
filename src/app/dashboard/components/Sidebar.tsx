@@ -11,6 +11,7 @@ const navItems = [
   { icon: 'bar_chart', label: 'Analytics', link: "/dashboard/analytics" },
   { icon: 'settings_input_antenna', label: 'Channel', link: "/dashboard/channel" },
   { icon: 'ads_click', label: 'Clicks', link: "/dashboard/clicks" },
+  { icon: 'person_check', label: 'Invite', link: "/dashboard/invite" },
 ];
 
 export default function Sidebar() {
@@ -24,8 +25,8 @@ export default function Sidebar() {
           <span className="material-symbols-outlined">rocket_launch</span>
         </div>
         <div>
-          <h1 className="text-base font-bold leading-tight">Command Center</h1>
-          <p className="text-[#4c739a] text-xs font-normal">AI-Powered Admin</p>
+          <h1 className="text-base font-bold leading-tight">Qefas Marketing Dashboard</h1>
+          <p className="text-[#4c739a] text-xs font-normal">AI-Powered</p>
         </div>
       </div>
 

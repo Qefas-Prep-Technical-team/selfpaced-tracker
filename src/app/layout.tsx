@@ -5,6 +5,7 @@ import { ThemeClientProvider } from "@/context/ThemeClientProvider";
 import NextTopLoader from "nextjs-toploader";
 import { ToastContainer } from 'react-toastify';
 import QueryProvider from "@/lib/providers/QueryProvider";
+import { Providers } from "./components/Providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,7 +43,9 @@ export default function RootLayout({
 
         <ThemeClientProvider>
           <NextTopLoader showSpinner={false} />
+          <Providers>
           {children}
+          </Providers>
           <ToastContainer 
           position="bottom-right"
           autoClose={2000}

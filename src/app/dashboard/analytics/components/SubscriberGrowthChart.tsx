@@ -1,55 +1,68 @@
-// components/analytics/SubscriberGrowthChart.tsx
 'use client'
 
-import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, 
+  Tooltip, ResponsiveContainer 
+} from 'recharts'
+import { Loader2 } from 'lucide-react'
 
-export function SubscriberGrowthChart() {
-  const [timeRange, setTimeRange] = useState('weekly')
+interface FilterProps {
+  filter: { timeRange: string; channel: string }
+}
+
+export function SubscriberGrowthChart({ filter }: FilterProps) {
+  const { data: growthData = [], isLoading } = useQuery({
+    queryKey: ['subscriber-growth', filter.timeRange],
+    queryFn: () => fetch(`/api/analytics/subscriber-growth?range=${filter.timeRange}`).then(res => res.json()),
+  });
+
+  if (isLoading) return (
+    <div className="h-[400px] flex items-center justify-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
+      <Loader2 className="animate-spin text-primary" />
+    </div>
+  );
 
   return (
-    <div className="rounded-xl bg-white dark:bg-slate-900 border border-border-light dark:border-slate-700 p-6 shadow-sm">
+    <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-6 shadow-sm h-[400px] flex flex-col">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-text-primary dark:text-white font-bold text-lg">
-          Subscriber Growth
-        </h3>
-        <select 
-          value={timeRange}
-          onChange={(e) => setTimeRange(e.target.value)}
-          className="bg-transparent border-none text-text-secondary text-sm focus:ring-0 cursor-pointer font-medium"
-        >
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
-        </select>
+        <h3 className="text-slate-900 dark:text-white font-bold text-lg">Subscriber Growth</h3>
+        <div className="text-xs font-medium text-green-500 bg-green-500/10 px-2 py-1 rounded">
+          Total List Growth
+        </div>
       </div>
 
-      <div className="h-64 relative">
-        {/* Area Chart */}
-        <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 800 200">
-          <defs>
-            <linearGradient id="grad1" x1="0%" x2="0%" y1="0%" y2="100%">
-              <stop offset="0%" style={{ stopColor: 'rgba(43, 157, 238, 0.2)', stopOpacity: 1 }} />
-              <stop offset="100%" style={{ stopColor: 'rgba(43, 157, 238, 0)', stopOpacity: 1 }} />
-            </linearGradient>
-          </defs>
-          <path 
-            d="M0,180 C100,160 200,170 300,120 C400,70 500,90 600,40 C700,20 800,10 800,10 L800,200 L0,200 Z" 
-            fill="url(#grad1)" 
-          />
-          <path 
-            d="M0,180 C100,160 200,170 300,120 C400,70 500,90 600,40 C700,20 800,10 800,10" 
-            fill="none" 
-            stroke="#2b9dee" 
-            strokeWidth="3"
-          />
-        </svg>
-
-        {/* X-axis labels */}
-        <div className="absolute bottom-0 w-full flex justify-between px-2 pt-4 text-[10px] text-text-secondary dark:text-slate-500 font-bold uppercase tracking-wider">
-          {['Week 1', 'Week 2', 'Week 3', 'Week 4'].map((label) => (
-            <span key={label}>{label}</span>
-          ))}
-        </div>
+      <div className="flex-1 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={growthData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <defs>
+              <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#734c9a" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#734c9a" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" className="dark:stroke-slate-800" />
+            <XAxis 
+              dataKey="date" 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#94a3b8', fontSize: 10 }} 
+              minTickGap={30}
+            />
+            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10 }} />
+            <Tooltip 
+              contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+            />
+            <Area 
+              type="monotone" 
+              dataKey="count" 
+              stroke="#734c9a" 
+              strokeWidth={3}
+              fillOpacity={1} 
+              fill="url(#colorCount)" 
+            />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
     </div>
   )
