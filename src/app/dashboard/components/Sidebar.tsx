@@ -11,6 +11,7 @@ const navItems = [
   { icon: 'bar_chart', label: 'Analytics', link: "/dashboard/analytics" },
   { icon: 'settings_input_antenna', label: 'Channel', link: "/dashboard/channel" },
   { icon: 'ads_click', label: 'Clicks', link: "/dashboard/clicks" },
+  { icon: 'person_check', label: 'Invite', link: "/dashboard/invite" },
 ];
 
 export default function Sidebar() {
