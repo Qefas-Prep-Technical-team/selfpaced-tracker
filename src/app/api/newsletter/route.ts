@@ -78,3 +78,19 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
   }
 }
+
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const { id, status } = await req.json();
+    await dbConnect();
+    const updated = await Newsletter.findByIdAndUpdate(
+      id, 
+      { status }, 
+      { new: true }
+    );
+    return NextResponse.json(updated);
+  } catch (error) {
+    return NextResponse.json({ error: "Update failed" }, { status: 500 });
+  }
+}
