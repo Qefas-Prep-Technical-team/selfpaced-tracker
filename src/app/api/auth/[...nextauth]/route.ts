@@ -32,7 +32,7 @@ const handler = NextAuth({
         // 2. Check password
         const isPasswordCorrect = await bcrypt.compare(
           credentials.password,
-          user.password
+          user.password,
         );
 
         if (!isPasswordCorrect) {
@@ -40,6 +40,7 @@ const handler = NextAuth({
         }
 
         // 3. Return user object (this gets saved in the JWT)
+
         return {
           id: user._id.toString(),
           email: user.email,

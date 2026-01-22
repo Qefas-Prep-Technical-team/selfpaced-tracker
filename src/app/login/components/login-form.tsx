@@ -1,12 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+
 import { Input } from "./ui/input";
 import { Checkbox } from "./ui/checkbox";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Button } from "./ui/button";
 
 interface LoginFormData {
   email: string;
@@ -31,6 +32,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
   const {
     register,
     handleSubmit,
+    control, // Add this
     formState: { isSubmitting },
   } = useForm<LoginFormData>({
     defaultValues: {
@@ -39,7 +41,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
       rememberMe: false,
     },
   });
-
   const validateForm = (data: LoginFormData): boolean => {
     const newErrors: Partial<Record<keyof LoginFormData, string>> = {};
 
@@ -107,9 +108,9 @@ const LoginForm: React.FC<LoginFormProps> = ({
               className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
             >
               {showPassword ? (
-                <EyeOff className="h-5 w-5" />
+                <EyeOff className="h-5 w-5 cursor-pointer" />
               ) : (
-                <Eye className="h-5 w-5" />
+                <Eye className="h-5 w-5 cursor-pointer" />
               )}
             </button>
           }
@@ -122,12 +123,13 @@ const LoginForm: React.FC<LoginFormProps> = ({
       {/* Remember Me Checkbox */}
       <div className="flex items-center">
         <Checkbox
-          {...register("rememberMe")}
           id="remember-me"
+          type="checkbox" // Explicitly tell it it's a checkbox
+          {...register("rememberMe")}
         />
         <label
           htmlFor="remember-me"
-          className="ml-2 block text-sm text-slate-600 dark:text-slate-400"
+          className="ml-2 block text-sm text-slate-600 dark:text-slate-400 cursor-pointer select-none"
         >
           Remember this device for 30 days
         </label>
@@ -137,7 +139,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       <Button
         type="submit"
         isLoading={isLoading || isSubmitting}
-        className="w-full py-3.5 shadow-sm"
+        className="w-full py-3.5 shadow-sm cursor-pointer"
         size="lg"
       >
         Log in to Workspace

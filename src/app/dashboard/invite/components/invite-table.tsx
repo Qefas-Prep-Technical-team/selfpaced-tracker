@@ -1,115 +1,69 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import * as React from "react";
-import { cn } from "@/lib/utils";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "./ui/table";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import { SearchInput } from "./ui/input";
 import {
   Copy,
   Send,
   UserX,
   RefreshCw,
   Trash2,
-  Filter,
   ChevronDown,
+  Loader2
 } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
+import { cn, formatDate } from "@/lib/utils"; // Ensure formatDate is exported from utils
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
 
 export interface Invite {
   id: string;
+  token: string;
   email: string;
   role: "Admin" | "Viewer" | "Editor";
   status: "accepted" | "pending" | "expired";
   invitedOn: Date | string;
-  actions?: {
-    copy?: boolean;
-    resend?: boolean;
-    revoke?: boolean;
-    refresh?: boolean;
-    delete?: boolean;
-  };
 }
 
 interface InviteTableProps {
   invites: Invite[];
-  searchPlaceholder?: string;
+  onRoleChange?: (invite: Invite, newRole: Invite["role"]) => Promise<void> | void;
+  onDelete?: (invite: Invite) => void;
   onCopy?: (invite: Invite) => void;
   onResend?: (invite: Invite) => void;
   onRevoke?: (invite: Invite) => void;
-  onRefresh?: (invite: Invite) => void;
-  onDelete?: (invite: Invite) => void;
-  pagination?: {
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
-    onPageChange: (page: number) => void;
-  };
 }
 
 const InviteTable: React.FC<InviteTableProps> = ({
   invites,
-  searchPlaceholder = "Search by email...",
+  onRoleChange,
+  onDelete,
   onCopy,
   onResend,
-  onRevoke,
-  onRefresh,
-  onDelete,
-  pagination,
+  onRevoke
 }) => {
-  const getStatusVariant = (status: Invite["status"]) => {
-    switch (status) {
-      case "accepted":
-        return "success";
-      case "pending":
-        return "warning";
-      case "expired":
-        return "expired";
-      default:
-        return "default";
+  // Track which invite is currently updating its role
+  const [updatingId, setUpdatingId] = React.useState<string | null>(null);
+
+  const handleRoleUpdate = async (invite: Invite, newRole: Invite["role"]) => {
+    setUpdatingId(invite.id);
+    if (onRoleChange) {
+      await onRoleChange(invite, newRole);
     }
+    setUpdatingId(null);
   };
 
-  const getRoleVariant = (role: Invite["role"]) => {
-    switch (role) {
-      case "Admin":
-        return "primary";
-      default:
-        return "default";
+  const getStatusVariant = (status: Invite["status"]): "success" | "warning" | "expired" | "default" => {
+    switch (status) {
+      case "accepted": return "success";
+      case "pending": return "warning";
+      case "expired": return "expired";
+      default: return "default";
     }
   };
 
   return (
     <div className="bg-white dark:bg-background-dark/50 border border-border-light dark:border-border-dark rounded-xl overflow-hidden shadow-sm">
-      {/* Table Header / Filters */}
-      <div className="p-4 border-b border-border-light dark:border-border-dark flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="flex-1 max-w-lg">
-          <SearchInput placeholder={searchPlaceholder} />
-        </div>
-        <div className="flex items-center gap-3">
-          <Button variant="secondary" rightIcon={<ChevronDown className="h-4 w-4" />}>
-            Role: All
-          </Button>
-          <Button variant="secondary" rightIcon={<ChevronDown className="h-4 w-4" />}>
-            Status: All
-          </Button>
-          <div className="w-[1px] h-8 bg-border-light dark:bg-border-dark mx-1" />
-          <Button variant="secondary" size="icon">
-            <Filter className="h-5 w-5" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Table Body */}
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -124,14 +78,37 @@ const InviteTable: React.FC<InviteTableProps> = ({
           <TableBody>
             {invites.map((invite) => (
               <TableRow key={invite.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5">
-                <TableCell className="font-medium text-foreground">
-                  {invite.email}
-                </TableCell>
+                <TableCell className="font-medium text-foreground">{invite.email}</TableCell>
+
+                {/* ROLE CELL WITH LOADING */}
                 <TableCell>
-                  <Badge variant={getRoleVariant(invite.role)}>
-                    {invite.role}
-                  </Badge>
+                  <div className="relative group flex items-center gap-2">
+                    {updatingId === invite.id ? (
+                      <div className="flex items-center gap-2 text-sm text-primary animate-pulse font-medium pl-2">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Saving...
+                      </div>
+                    ) : (
+                      <>
+                        <select
+                          value={invite.role}
+                          onChange={(e) => handleRoleUpdate(invite, e.target.value as Invite["role"])}
+                          className={cn(
+                            "appearance-none bg-transparent py-1 pl-2 pr-8 rounded-md border border-transparent",
+                            "text-sm font-semibold cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-white/5",
+                            invite.role === "Admin" ? "text-primary" : "text-slate-600 dark:text-slate-400"
+                          )}
+                        >
+                          <option value="Admin">Admin</option>
+                          <option value="Editor">Editor</option>
+                          <option value="Viewer">Viewer</option>
+                        </select>
+                        <ChevronDown className="absolute right-2 h-3 w-3 text-slate-400 pointer-events-none group-hover:text-primary" />
+                      </>
+                    )}
+                  </div>
                 </TableCell>
+
                 <TableCell>
                   <Badge
                     variant={getStatusVariant(invite.status)}
@@ -141,63 +118,29 @@ const InviteTable: React.FC<InviteTableProps> = ({
                     {invite.status.charAt(0).toUpperCase() + invite.status.slice(1)}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-gray-500 dark:text-gray-400">
-                  {formatDate(invite.invitedOn)}
+
+                {/* INVITED ON CELL */}
+                <TableCell className="text-gray-500 dark:text-gray-400 text-sm">
+                  {invite.invitedOn ? formatDate(invite.invitedOn) : "N/A"}
                 </TableCell>
-                <TableCell>
-                  <div className="flex justify-end gap-2">
-                    {invite.status === "expired" ? (
-                      <>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          disabled
-                          className="opacity-50 cursor-not-allowed"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onRefresh?.(invite)}
-                        >
-                          <RefreshCw className="h-4 w-4 text-primary" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
-                          onClick={() => onDelete?.(invite)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onCopy?.(invite)}
-                        >
-                          <Copy className="h-4 w-4 text-primary" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onResend?.(invite)}
-                        >
-                          <Send className="h-4 w-4 text-gray-500" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
-                          onClick={() => onRevoke?.(invite)}
-                        >
-                          <UserX className="h-4 w-4" />
-                        </Button>
-                      </>
-                    )}
+
+                {/* ACTIONS CELL */}
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => onCopy?.(invite)}>
+                      <Copy className="h-4 w-4 text-primary cursor-pointer" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => onResend?.(invite)}>
+                      <Send className="h-4 w-4 cursor-pointer" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-red-500 hover:bg-red-50 cursor-pointer"
+                      onClick={() => onDelete?.(invite)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -205,43 +148,6 @@ const InviteTable: React.FC<InviteTableProps> = ({
           </TableBody>
         </Table>
       </div>
-
-      {/* Table Footer */}
-      {pagination && (
-        <div className="px-6 py-4 border-t border-border-light dark:border-border-dark flex items-center justify-between">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Showing{" "}
-            <span className="font-medium text-foreground">
-              {Math.min((pagination.currentPage - 1) * pagination.itemsPerPage + 1, pagination.totalItems)}
-            </span>{" "}
-            to{" "}
-            <span className="font-medium text-foreground">
-              {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)}
-            </span>{" "}
-            of{" "}
-            <span className="font-medium text-foreground">{pagination.totalItems}</span>{" "}
-            results
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={pagination.currentPage === 1}
-              onClick={() => pagination.onPageChange(pagination.currentPage - 1)}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={pagination.currentPage === pagination.totalPages}
-              onClick={() => pagination.onPageChange(pagination.currentPage + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

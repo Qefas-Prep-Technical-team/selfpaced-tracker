@@ -1,10 +1,15 @@
-// components/marketing/HeroSection.tsx
-import { Button } from './ui/Button'
-import FloatingLaptop from './FloatingLaptop'
-import Link from 'next/link'
+"use client"; // Must be a client component to use session
 
+import { useSession } from "next-auth/react";
+import { Button } from './ui/Button';
+import FloatingLaptop from './FloatingLaptop';
+import Link from 'next/link';
+import { ArrowRight, LayoutDashboard } from "lucide-react";
 
 export function HeroSection() {
+  const { data: session, status } = useSession();
+  const isLoading = status === "loading";
+
   return (
     <section className="py-16 lg:py-24">
       <div className="flex flex-col lg:flex-row gap-12 lg:items-center">
@@ -18,16 +23,34 @@ export function HeroSection() {
               The all-in-one analytics engine for performance marketers. Gain absolute clarity on your conversion funnel in minutes.
             </p>
           </div>
+
           <div className="flex flex-col sm:flex-row gap-4">
-            <Link href="/dashboard" passHref>
-              <Button className='cursor-pointer'  variant="default" size="xl">
-                Open Dashboard
-              </Button>
-            </Link>
+            {/* Dynamic Auth Button */}
+            {session ? (
+              <Link href="/dashboard" passHref>
+                <Button className='cursor-pointer gap-2' variant="default" size="xl">
+                  <LayoutDashboard className="size-5" />
+                  Open Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/login" passHref>
+                <Button
+                  className='cursor-pointer gap-2'
+                  variant="default"
+                  size="xl"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Checking session..." : "Get Started Now"}
+                  {!isLoading && <ArrowRight className="size-5" />}
+                </Button>
+              </Link>
+            )}
+
             <Link className='cursor-pointer' href="/demo" passHref>
-            <Button variant="outline" size="xl">
-              View Demo
-            </Button>
+              <Button variant="outline" size="xl">
+                View Demo
+              </Button>
             </Link>
           </div>
         </div>
@@ -38,5 +61,5 @@ export function HeroSection() {
         </div>
       </div>
     </section>
-  )
+  );
 }
