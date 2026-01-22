@@ -1,89 +1,73 @@
-// components/analytics/BotHumanPieChart.tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
+'use client'
 
-interface Distribution {
-  type: 'bot' | 'human'
-  count: number
-  percentage: number
-  color: string
-  bgColor: string
-  borderColor: string
+import { useQuery } from '@tanstack/react-query'
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
+import { Loader2 } from 'lucide-react'
+
+interface FilterProps {
+  filter: { timeRange: string; channel: string }
 }
 
-const distributionData: Distribution[] = [
-  {
-    type: 'bot',
-    count: 1248,
-    percentage: 68,
-    color: 'text-primary',
-    bgColor: 'bg-primary/5',
-    borderColor: 'border-primary/10'
-  },
-  {
-    type: 'human',
-    count: 582,
-    percentage: 32,
-    color: 'text-text-secondary dark:text-slate-400',
-    bgColor: 'bg-border-light/10 dark:bg-slate-800/20',
-    borderColor: 'border-border-light/20 dark:border-slate-700'
-  }
-]
+export function BotHumanPieChart({ filter }: FilterProps) {
+  const { data: distribution = [], isLoading } = useQuery({
+    queryKey: ['handling-distribution', filter.timeRange],
+    queryFn: () => fetch(`/api/analytics/distribution?range=${filter.timeRange}`).then(res => res.json()),
+  });
 
-export function BotHumanPieChart() {
-  const botData = distributionData.find(d => d.type === 'bot')!
+  const botData = distribution.find((d: any) => d.type === 'bot') || { count: 0, percentage: 0 };
+  const humanData = distribution.find((d: any) => d.type === 'human') || { count: 0, percentage: 0 };
+
+  const COLORS = ['#734c9a', '#cbd5e1']; // Primary purple for bot, slate for human
+
+  if (isLoading) return (
+    <div className="h-[400px] flex items-center justify-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
+      <Loader2 className="animate-spin text-primary" />
+    </div>
+  );
 
   return (
-    <div className="rounded-xl bg-white dark:bg-slate-900 border border-border-light dark:border-slate-700 p-6 shadow-sm flex flex-col">
-      <h3 className="text-text-primary dark:text-white font-bold text-lg mb-6">
-        Bot vs. Human Handling
-      </h3>
-      <div className="flex-1 flex flex-col items-center justify-center">
-        {/* Pie Chart */}
-        <div className="relative size-40">
-          <svg className="size-full transform -rotate-90" viewBox="0 0 36 36">
-            <circle 
-              cx="18" 
-              cy="18" 
-              fill="none" 
-              r="15.915" 
-              stroke="#cfdde7" 
-              strokeDasharray="100" 
-              strokeWidth="4"
-            />
-            <circle 
-              cx="18" 
-              cy="18" 
-              fill="none" 
-              r="15.915" 
-              stroke="#2b9dee" 
-              strokeDasharray={`${botData.percentage} ${100 - botData.percentage}`}
-              strokeLinecap="round"
-              strokeWidth="4"
-            />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-black text-text-primary dark:text-white">
-              {botData.percentage}%
-            </span>
-            <span className="text-[10px] text-text-secondary font-bold uppercase">
-              Automated
-            </span>
-          </div>
+    <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-6 shadow-sm h-[400px] flex flex-col">
+      <h3 className="text-slate-900 dark:text-white font-bold text-lg mb-6">Bot vs. Human Handling</h3>
+      
+      <div className="flex-1 flex flex-col items-center justify-center relative">
+        <ResponsiveContainer width="100%" height={200}>
+          <PieChart>
+            <Pie
+              data={distribution}
+              cx="50%"
+              cy="50%"
+              innerRadius={60}
+              outerRadius={80}
+              paddingAngle={5}
+              dataKey="count"
+              stroke="none"
+            >
+              <Cell fill="#734c9a" /> {/* Bot */}
+              <Cell fill="#cbd5e1" className="dark:fill-slate-700" /> {/* Human */}
+            </Pie>
+            <Tooltip />
+          </PieChart>
+        </ResponsiveContainer>
+
+        {/* Center Text Overlap */}
+        <div className="absolute top-[40%] flex flex-col items-center pointer-events-none">
+          <span className="text-2xl font-black text-slate-900 dark:text-white">{botData.percentage}%</span>
+          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">Automated</span>
         </div>
 
-        {/* Legend */}
+        {/* Dynamic Legend */}
         <div className="mt-8 grid grid-cols-2 gap-4 w-full">
-          {distributionData.map((item) => (
+          {[botData, humanData].map((item, idx) => (
             <div 
               key={item.type}
-              className={`flex flex-col items-center p-3 rounded-lg border ${item.bgColor} ${item.borderColor}`}
+              className={`flex flex-col items-center p-3 rounded-lg border bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/10`}
             >
               <div className="flex items-center gap-1.5 mb-1">
-                <div className={`size-2 rounded-full ${item.color.replace('text-', 'bg-')}`} />
-                <span className="text-xs font-bold text-text-primary dark:text-white capitalize">
-                  {item.type}
-                </span>
+                <div className={`size-2 rounded-full ${idx === 0 ? 'bg-[#734c9a]' : 'bg-slate-300'}`} />
+                <span className="text-xs font-bold text-slate-900 dark:text-white capitalize">{item.type}</span>
               </div>
-              <span className={`text-sm font-black ${item.color}`}>
+              <span className={`text-sm font-black ${idx === 0 ? 'text-[#734c9a]' : 'text-slate-500'}`}>
                 {item.count.toLocaleString()}
               </span>
             </div>

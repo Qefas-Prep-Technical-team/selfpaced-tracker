@@ -24,8 +24,8 @@ export default function Sidebar() {
           <span className="material-symbols-outlined">rocket_launch</span>
         </div>
         <div>
-          <h1 className="text-base font-bold leading-tight">Command Center</h1>
-          <p className="text-[#4c739a] text-xs font-normal">AI-Powered Admin</p>
+          <h1 className="text-base font-bold leading-tight">Qefas Marketing Dashboard</h1>
+          <p className="text-[#4c739a] text-xs font-normal">AI-Powered</p>
         </div>
       </div>
 
