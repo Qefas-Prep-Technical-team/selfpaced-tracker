@@ -4,7 +4,7 @@ import Click from "@/models/Click";
 
 // CHANGE: Use your specific domain instead of "*"
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "https://www.selfpaced.qefas.com", 
+  "Access-Control-Allow-Origin": "*", 
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
