@@ -7,7 +7,7 @@ import { Channel } from '@/models/Channel';
 
 // Define headers clearly
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*', // Change this to your specific domain in production
+  'Access-Control-Allow-Origin': 'https://www.selfpaced.qefas.com', // Change this to your specific domain in production
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
@@ -24,6 +24,10 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
 
     const { parentName, childClass, whatsapp, channelId, channelName } = body
+  // 1. Strict Validation
+    if (!parentName || parentName.length > 50) {
+       return NextResponse.json({ error: 'Invalid Name' }, { status: 400, headers: corsHeaders });
+    }
 
     // 1. Basic validation
     if (!parentName || !whatsapp || !channelId || !channelName) {
