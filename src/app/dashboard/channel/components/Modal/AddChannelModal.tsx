@@ -130,14 +130,14 @@ const handleCreateChannel = async (data: ChannelFormData) => {
         <div className="flex justify-end gap-3">
           <Button
             variant="outline"
-            className="h-11 px-6"
+            className="h-11 px-6 cursor-pointer"
             onClick={onClose}
           >
             Cancel
           </Button>
           <Button
             type="submit"
-            className="h-11 px-8 shadow-lg shadow-primary/20"
+            className="h-11 px-8 shadow-lg shadow-primary/20 cursor-pointer"
             onClick={form.handleSubmit(handleCreateChannel)}
           >
             Add Channel

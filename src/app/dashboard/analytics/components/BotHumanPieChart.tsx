@@ -51,7 +51,7 @@ export function BotHumanPieChart({ filter }: FilterProps) {
         </ResponsiveContainer>
 
         {/* Center Text Overlap */}
-        <div className="absolute top-[40%] flex flex-col items-center pointer-events-none">
+        <div className="absolute top-[30%]  flex flex-col items-center pointer-events-none">
           <span className="text-2xl font-black text-slate-900 dark:text-white">{botData.percentage}%</span>
           <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">Automated</span>
         </div>

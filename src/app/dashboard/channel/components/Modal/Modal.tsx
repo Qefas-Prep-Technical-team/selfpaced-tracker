@@ -38,6 +38,8 @@ export function Modal({
     '2xl': 'max-w-2xl'
   }
 
+  
+
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <HeadlessDialog 
@@ -97,7 +99,7 @@ export function Modal({
                         variant="ghost"
                         size="sm"
                         onClick={onClose}
-                        className="p-2 text-slate-500 dark:text-[#92adc9] hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#233648]"
+                        className="p-2 text-slate-500 cursor-pointer dark:text-[#92adc9] hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#233648]"
                       >
                         <X size={20} />
                       </Button>

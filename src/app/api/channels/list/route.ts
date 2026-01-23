@@ -4,7 +4,7 @@ import { Channel } from "@/models/Channel";
 
 // 1. Define your headers (Note: No trailing slash at the end of the URL!)
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "https://www.selfpaced.qefas.com",
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };

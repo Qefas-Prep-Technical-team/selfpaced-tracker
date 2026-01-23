@@ -22,12 +22,13 @@ const handler = NextAuth({
         }
 
         await dbConnect();
-
+        
         // 1. Find user in DB
         const user = await User.findOne({ email: credentials.email });
         if (!user || !user.password) {
           throw new Error("No user found");
         }
+        console.log(user)
 
         // 2. Check password
         const isPasswordCorrect = await bcrypt.compare(
