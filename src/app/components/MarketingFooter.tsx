@@ -34,7 +34,7 @@ export function MarketingFooter() {
 
         {/* Copyright */}
         <p className="text-sm text-text-secondary dark:text-white/60">
-          © 2024 QEFAS Analytics. All rights reserved.
+          © 2026 QEFAS Analytics. All rights reserved.
         </p>
       </div>
     </footer>

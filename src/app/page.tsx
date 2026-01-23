@@ -12,7 +12,7 @@ export default function HomePage() {
     <div className="bg-background-light dark:bg-background-dark text-text-primary dark:text-white transition-colors duration-300 min-h-screen">
       <MarketingHeader />
       
-      <main className="max-w-[1280px] mx-auto px-6 lg:px-40">
+      <main className="max-w-400 mx-auto px-6 lg:px-40">
         <HeroSection />
         <ValueCards />
         <DataFlow />
