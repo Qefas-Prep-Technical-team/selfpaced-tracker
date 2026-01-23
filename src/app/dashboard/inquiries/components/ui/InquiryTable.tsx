@@ -14,7 +14,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import React, { Dispatch, SetStateAction } from 'react'
+import React, { Dispatch, SetStateAction, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { InquiryTableSkeleton } from './InquiryTableSkeleton'
 import {
@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Eye, Pencil, Trash2 } from "lucide-react"
 import { useInquiryMutations } from '../useInquiryMutations'
+import { useSession } from 'next-auth/react'
+import { ConfirmModal } from '@/app/components/ui/ConfirmModal'
 
 
 
@@ -44,6 +46,19 @@ interface Inquiry {
 
 export function InquiryTable({setIsModalOpen,setId}:{setIsModalOpen:Dispatch<SetStateAction<boolean>>,setId:Dispatch<SetStateAction<string>>}) {
     const [page, setPage] = React.useState(1);
+    const { data: session } = useSession();
+  const [isModalOpen, setIsModalOpen2] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // This replaces your previous handleDelete
+  const openDeleteModal = (id: string) => {
+    setSelectedId(id);
+    setIsModalOpen2(true);
+  };
+  // 1. Determine Permission (Normalize to Uppercase to match your logic)
+ // 1. Check permissions
+const userRole = (session?.user as any)?.role?.toUpperCase();
+const canEditOrDelete = userRole === "ADMIN" || userRole === "EDITOR";
     const { data, isLoading } = useQuery({
   queryKey: ["inquiries", page],
   queryFn: async () => {
@@ -116,10 +131,24 @@ const handleView = (inquiry: any) => {
 }
 
 const handleDelete = (id: string) => {
-  console.log(id)
- deleteInquiry.mutate(id)
-  // confirm → delete mutation
-}
+  // 1. Show the confirmation dialog
+  const isConfirmed = window.confirm("Are you sure you want to delete this inquiry? This action cannot be undone.");
+
+  // 2. Only proceed if the user clicked "OK"
+  if (isConfirmed) {
+    deleteInquiry.mutate(id);
+  }
+};
+const handleConfirmDelete = () => {
+    if (selectedId) {
+      deleteInquiry.mutate(selectedId, {
+        onSuccess: () => {
+          setIsModalOpen(false); // Close modal on success
+          setSelectedId(null);
+        }
+      });
+    }
+  }
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -235,36 +264,39 @@ const handleDelete = (id: string) => {
  <td className="px-6 py-4 text-right">
   <DropdownMenu>
     <DropdownMenuTrigger asChild>
-      <Button variant="ghost" size="md" className='cursor-pointer '>
+      <Button variant="ghost" size="md" className='cursor-pointer'>
         <MoreVertical size={18} />
       </Button>
     </DropdownMenuTrigger>
 
     <DropdownMenuContent align="end">
-      <DropdownMenuItem
-      onClick={()=>handleView(inquiry)}
-      >
+      {/* Everyone can see View */}
+      <DropdownMenuItem onClick={() => handleView(inquiry)}>
         View
       </DropdownMenuItem>
-      <DropdownMenuItem
-        onClick={() => {
-          editInquiry.mutate({
-            id: inquiry._id,
-            data: {
-              status: "contacted",
-            },
-          })
-        }}
-      >
-        Edit
-      </DropdownMenuItem>
 
-      <DropdownMenuItem
-        className="text-red-600 focus:text-red-600"
-        onClick={() => handleDelete(inquiry._id)}
-      >
-        Delete
-      </DropdownMenuItem>
+      {/* Only Admin/Editor can see Edit and Delete */}
+      {canEditOrDelete && (
+        <>
+          <DropdownMenuItem
+            onClick={() => {
+              editInquiry.mutate({
+                id: inquiry._id,
+                data: { status: "contacted" },
+              })
+            }}
+          >
+            Edit
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            className="text-red-600 focus:text-red-600"
+            onClick={() => openDeleteModal(inquiry._id)}
+          >
+            Delete
+          </DropdownMenuItem>
+        </>
+      )}
     </DropdownMenuContent>
   </DropdownMenu>
 </td>
@@ -326,7 +358,15 @@ const handleDelete = (id: string) => {
 </Pagination>
 
 </div>
-
+{/* Put the Modal at the bottom of the fragment */}
+      <ConfirmModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen2(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirm Deletion"
+        message="Are you sure you want to delete this inquiry? This cannot be undone."
+        isLoading={deleteInquiry.isPending}
+      />
     </div>
   )
 }

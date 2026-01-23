@@ -7,7 +7,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem
 } from '@/components/ui/dropdown-menu'
-import { Edit, Trash } from 'lucide-react'
+import { Edit, Lock, Trash } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { MoreVertical } from 'lucide-react'
 import { Badge } from './ui/Badge'
@@ -18,11 +18,14 @@ import { ChannelList, useDeleteChannel } from './hook'
 import { Channel } from '../../types'
 import { toast } from 'react-toastify'
 import { SkeletonTable } from './TableSkeleton'
+import { useSession } from 'next-auth/react'
+import { ConfirmModal } from '@/app/components/ui/ConfirmModal'
 
 
 const PAGE_SIZE = 5
 
 export function ChannelTable() {
+  const { data: session } = useSession();
   const { data, isLoading, error } = ChannelList()
   const channels = data?.data || []
 
@@ -30,6 +33,12 @@ export function ChannelTable() {
   const [typeFilter, setTypeFilter] = useState<'all' | 'digital' | 'offline' | 'team'>('all')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'paused' | 'archived'>('all')
   const [page, setPage] = useState(1)
+  // Role Check
+  const userRole = (session?.user as any)?.role?.toUpperCase();
+  const canManage = userRole === "ADMIN" || userRole === "EDITOR";
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   
   function handleEdit(channel: Channel) {
     // Open modal or navigate to edit page
@@ -49,6 +58,24 @@ export function ChannelTable() {
         }
       });
     }
+  };
+  const handleOpenDelete = (id: string) => {
+    setSelectedId(id);
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!selectedId) return;
+    deleteMutation.mutate(selectedId, {
+      onSuccess: () => {
+        toast.success('Channel removed');
+        setIsModalOpen(false);
+        setSelectedId(null);
+      },
+      onError: (error: any) => {
+        toast.error(error.message);
+      }
+    });
   };
 
   const filteredChannels = useMemo(() => {
@@ -170,25 +197,34 @@ export function ChannelTable() {
         </div>
       ),
     },
-    {
+   {
       header: 'Actions',
       accessor: (row: Channel) => (
         <div className="text-right">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <MoreVertical size={20} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleEdit(row)}>
-                <Edit size={16} className="mr-2" /> Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleDelete(row._id)}>
-                <Trash size={16} className="mr-2" /> Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {canManage ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <MoreVertical size={20} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleEdit(row)}>
+                  <Edit size={16} className="mr-2" /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="text-red-600 focus:text-red-600"
+                  onClick={() => handleOpenDelete(row._id)}
+                >
+                  <Trash size={16} className="mr-2" /> Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex justify-end pr-3">
+              <Lock size={16} className="text-slate-300 dark:text-slate-600"  />
+            </div>
+          )}
         </div>
       ),
       className: 'text-right',
@@ -291,6 +327,18 @@ if (isLoading) return <SkeletonTable />
           </Button>
         </div>
       </div>
+      {/* 3. Add the Modal at the bottom */}
+      <ConfirmModal 
+        isOpen={isModalOpen}
+        onClose={() => {
+            setIsModalOpen(false);
+            setSelectedId(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Delete Channel"
+        message="Are you sure you want to delete this channel? All associated tracking data will be archived."
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   )
 }

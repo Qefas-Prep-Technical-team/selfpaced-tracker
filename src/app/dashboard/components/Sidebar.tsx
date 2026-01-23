@@ -1,6 +1,10 @@
+"use client"
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { link } from 'fs'
 import NavItem from './NavItem'
 import UserProfile from './UserProfile'
+import { useSession } from 'next-auth/react';
 
 
 const navItems = [
@@ -11,10 +15,23 @@ const navItems = [
   { icon: 'bar_chart', label: 'Analytics', link: "/dashboard/analytics" },
   { icon: 'settings_input_antenna', label: 'Channel', link: "/dashboard/channel" },
   { icon: 'ads_click', label: 'Clicks', link: "/dashboard/clicks" },
-  { icon: 'person_check', label: 'Invite', link: "/dashboard/invite" },
+  { icon: 'person_check', label: 'Invite', link: "/dashboard/invite", adminOnly: true }, // Added flag
 ];
 
 export default function Sidebar() {
+    const { data: session, status: sessionStatus } = useSession();
+    // 1. Get the current role (and normalize to lowercase)
+  const userRole = (session?.user as any)?.role?.toLowerCase();
+
+  // 2. Filter the items
+  const visibleNavItems = navItems.filter(item => {
+    // If it's an admin-only item, only show if user is admin
+    if (item.adminOnly) {
+      return userRole === 'admin';
+    }
+    // Otherwise, show it to everyone
+    return true;
+  });
 
 
   return (
@@ -32,7 +49,7 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-4 space-y-1 mt-4">
-        {navItems.map((item) => (
+        {visibleNavItems.map((item) => (
           <NavItem
             key={item.label}
             icon={item.icon}

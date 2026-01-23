@@ -3,15 +3,26 @@
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Copy, UserX, Search, Download, Loader2, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react'
+import { Copy, UserX, Search, Download, Loader2, ChevronLeft, ChevronRight, CheckCircle2, Lock } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { Button } from '../../inquiries/components/ui/Button'
+import { ConfirmModal } from '@/app/components/ui/ConfirmModal'
+import { useSession } from 'next-auth/react'
 
 export function SubscriberTable() {
+  const { data: session } = useSession();
   const [searchTerm, setSearchTerm] = useState('');
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const limit = 10;
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // 2. Permission Check
+  const userRole = (session?.user as any)?.role?.toUpperCase();
+  const canManage = userRole === "ADMIN" || userRole === "EDITOR";
 
   // 1. Fetch Paginated Data
   const { data, isLoading, isPlaceholderData } = useQuery({
@@ -38,14 +49,28 @@ export function SubscriberTable() {
     }
   });
 
-  // 3. Delete Mutation
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) =>
-      fetch(`/api/newsletter?id=${id}`, { method: 'DELETE' }).then(res => res.json()),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subscribers'] });
-    }
-  });
+// 3. Delete Mutation
+const deleteMutation = useMutation({
+  mutationFn: (id: string) =>
+    fetch(`/api/newsletter?id=${id}`, { method: 'DELETE' }).then(res => res.json()),
+  onSuccess: () => {
+    // 1. Refresh the data in the table
+    queryClient.invalidateQueries({ queryKey: ['subscribers'] });
+    
+    // 2. CLOSE THE MODAL HERE
+    setIsModalOpen(false);
+    
+    // 3. Clear the selected ID
+    setSelectedId(null);
+
+    // Optional: Add a success notification
+    // toast.success("Subscriber removed");
+  },
+  onError: (error) => {
+    console.error("Delete failed:", error);
+    // Optional: alert("Failed to delete");
+  }
+});
 
   // Helper for Status Badge Colors
   const getStatusStyles = (status: string) => {
@@ -114,14 +139,18 @@ export function SubscriberTable() {
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex justify-end gap-1">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-slate-400 hover:text-red-500"
-                      onClick={() => { if(confirm('Remove subscriber?')) deleteMutation.mutate(subscriber._id) }}
-                    >
-                      <UserX size={18} />
-                    </Button>
+                   {canManage ? (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-slate-400 hover:text-red-500"
+                        onClick={() => { setSelectedId(subscriber._id); setIsModalOpen(true); }}
+                      >
+                        <UserX size={18} />
+                      </Button>
+                    ) : (
+                      <Lock size={14} className="text-slate-300" />
+                    )}
                   </div>
                 </td>
               </tr>
@@ -154,6 +183,15 @@ export function SubscriberTable() {
           </Button>
         </div>
       </div>
+      {/* Pagination & Confirm Modal ... */}
+      <ConfirmModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={() => selectedId && deleteMutation.mutate(selectedId)}
+        title="Remove Subscriber"
+        message="Are you sure you want to remove this email from your newsletter? This action cannot be undone."
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   )
 }

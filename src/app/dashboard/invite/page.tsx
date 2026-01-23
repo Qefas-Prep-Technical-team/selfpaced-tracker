@@ -11,6 +11,7 @@ import { SlideOver } from "./components/ui/slide-over";
 import { Button } from "../components/ui/Button";
 import { InviteGenerator } from "./components/invite-generator";
 import { toast } from "react-toastify"; // Ensure ToastContainer is in your layout.tsx
+import { ProtectedAdminRoute } from "../components/ProtectedUserRoute";
 
 export default function InviteManagementPage() {
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
@@ -91,7 +92,7 @@ export default function InviteManagementPage() {
   };
 
   return (
-    <>
+    <ProtectedAdminRoute>
       <main className="mx-auto px-6 py-8">
         <PageHeading
           title="Invite Management"
@@ -157,6 +158,6 @@ export default function InviteManagementPage() {
           return result.link;
         }} />
       </SlideOver>
-    </>
+    </ProtectedAdminRoute>
   );
 }

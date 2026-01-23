@@ -7,11 +7,16 @@ import { FilterBar } from './components/FilterBar'
 import { ChannelTable } from './components/ChannelTable'
 import { useState } from 'react'
 import { AddChannelModal } from './components/Modal/AddChannelModal'
+import { useSession } from 'next-auth/react'
 
 
 
 export default function DashboardPage() {
+  const { data: session } = useSession();
       const [isModalOpen, setIsModalOpen] = useState(false)
+      {/* 1. Define your check */}
+const userRole = (session?.user as any)?.role?.toUpperCase();
+const canManage = userRole === "ADMIN" || userRole === "EDITOR";
 
   return (
     <>
@@ -28,14 +33,16 @@ export default function DashboardPage() {
                 Overview and performance of your acquisition sources
               </p>
             </div>
-               <Button 
-                icon={Plus} 
-                iconPosition="left"
-                onClick={() => setIsModalOpen(true)}
-                className="shadow-lg shadow-primary/20"
-              >
-                Add New Channel
-              </Button> 
+             {canManage && (
+  <Button 
+    icon={Plus} 
+    iconPosition="left"
+    onClick={() => setIsModalOpen(true)}
+    className="shadow-lg shadow-primary/20 cursor-pointer"
+  >
+    Add New Channel
+  </Button>
+)}
           </div>
 
           {/* Table */}

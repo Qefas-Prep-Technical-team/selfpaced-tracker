@@ -16,11 +16,18 @@ interface DashboardControlsProps {
 
 export function DashboardControls({ timeRange, setTimeRange, channel, setChannel, onExport }: DashboardControlsProps) {
   
-  // Fetch real channels from your DB
-  const { data: channels = [], isLoading: isLoadingChannels } = useQuery({
-    queryKey: ['channel-list'],
-    queryFn: () => fetch('/api/channels/list').then(res => res.json())
-  });
+  // src/app/dashboard/analytics/components/DashboardControls.tsx
+
+const { data: channels = [], isLoading: isLoadingChannels } = useQuery({
+  queryKey: ['channel-list'],
+  queryFn: async () => {
+    const res = await fetch('/api/channels/list');
+    const json = await res.json();
+    
+    // Return the 'data' property because that's where the array is!
+    return json.data || []; 
+  }
+});
 
   return (
     <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
@@ -42,7 +49,6 @@ export function DashboardControls({ timeRange, setTimeRange, channel, setChannel
             onChange={(e) => setTimeRange(e.target.value)}
             className="pl-10 pr-8 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer"
           >
-            <option value="1d">Last 1Days</option>
             <option value="7d">Last 7 Days</option>
             <option value="30d">Last 30 Days</option>
             <option value="90d">Last 90 Days</option>
@@ -59,7 +65,7 @@ export function DashboardControls({ timeRange, setTimeRange, channel, setChannel
             disabled={isLoadingChannels}
           >
             <option value="all">All Channels</option>
-            {channels.map((ch: any) => (
+            {channels?.map((ch: any) => (
               <option key={ch._id} value={ch._id}>
                 {ch.name}
               </option>
