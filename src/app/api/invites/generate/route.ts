@@ -5,7 +5,7 @@ import crypto from "crypto";
 import Invite from "@/models/Invite";
 import { getServerSession } from "next-auth"; // Import this
 import { authOptions } from "@/lib/auth";
- // Path to your authOptions
+// Path to your authOptions
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     if (!session || userRole !== "admin") {
       return NextResponse.json(
         { error: "Access denied. Admins only." },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
     // 6. Construct the link
     const domain = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const inviteLink = `${domain}/register?token=${token}`; // Usually invite link goes to register
+    const inviteLink = `${domain}/invite?token=${token}`; // Invite link goes to invite page
 
     return NextResponse.json({ link: inviteLink }, { status: 201 });
   } catch (error: any) {

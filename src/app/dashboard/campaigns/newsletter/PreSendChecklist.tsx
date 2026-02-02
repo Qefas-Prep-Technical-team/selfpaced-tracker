@@ -1,11 +1,15 @@
 import React from 'react';
 import { CheckCircle, AlertTriangle, XCircle, Info } from 'lucide-react';
 
-interface ChecklistItem {
+
+
+export type ChecklistStatus = 'passed' | 'warning' | 'failed' | 'pending';
+
+export interface ChecklistItem {
     id: string;
     title: string;
     description?: string;
-    status: 'passed' | 'warning' | 'failed' | 'pending';
+    status: ChecklistStatus;
     action?: () => void;
 }
 

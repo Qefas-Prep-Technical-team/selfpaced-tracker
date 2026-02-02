@@ -2,7 +2,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Monitor, Smartphone, Info, RefreshCw } from 'lucide-react';
+import { Monitor, Smartphone, Info, RefreshCw, Video } from 'lucide-react';
+import { safeParseColumns } from '@/lib/utils';
 
 interface EmailPreviewProps {
     subject: string;
@@ -31,45 +32,12 @@ export const EmailPreview: React.FC<EmailPreviewProps> = ({
         setTimeout(() => setIsRefreshing(false), 1000);
     };
 
-    // const renderBlock = (block: any, index: number) => {
-    //     switch (block.type) {
-    //         case 'text':
-    //             return (
-    //                 <div key={index} className="space-y-4 mb-6">
-    //                     <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
-    //                         {block.content.title || 'Hello there,'}
-    //                     </h3>
-    //                     <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-    //                         {block.content.body || 'Your content here...'}
-    //                     </p>
-    //                 </div>
-    //             );
-    //         case 'image':
-    //             return (
-    //                 <div key={index} className="aspect-[16/9] w-full rounded-lg mb-8 bg-gradient-to-br from-primary to-blue-800 flex items-center justify-center text-white">
-    //                     <div className="text-center px-4 lg:px-10">
-    //                         <h2 className="text-lg lg:text-xl font-bold mb-2">Image Placeholder</h2>
-    //                         <p className="text-xs lg:text-sm text-white/80">
-    //                             {block.content.alt || 'Your image description here'}
-    //                         </p>
-    //                     </div>
-    //                 </div>
-    //             );
-    //         case 'button':
-    //             return (
-    //                 <div key={index} className="flex justify-center mb-8">
-    //                     <button className="px-6 lg:px-8 py-3 bg-primary text-white text-sm font-bold rounded-lg shadow-lg shadow-primary/20 hover:bg-blue-700 transition-colors">
-    //                         {block.content.label || 'Call to Action'}
-    //                     </button>
-    //                 </div>
-    //             );
-    //         default:
-    //             return null;
-    //     }
-    // };
 
     const renderBlock = (block: any, index: number) => {
         // Helper to extract content safely whether it's a string or an object
+
+        /* 2. Update your render logic */
+        const currentColumns = safeParseColumns(block.content);
         const getContent = (field: string, fallback: string) => {
             if (typeof block.content === 'string') return block.content;
             if (typeof block.content === 'object' && block.content !== null) {
@@ -88,19 +56,6 @@ export const EmailPreview: React.FC<EmailPreviewProps> = ({
                         <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400 whitespace-pre-wrap">
                             {getContent('body', 'Your content here...')}
                         </p>
-                    </div>
-                );
-            case 'image':
-                const imgSrc = typeof block.content === 'string' ? block.content : block.content.url;
-                return (
-                    <div key={index} className="w-full mb-8">
-                        {imgSrc && imgSrc.startsWith('http') ? (
-                            <img src={imgSrc} alt="Preview" className="w-full rounded-lg object-cover" />
-                        ) : (
-                            <div className="aspect-[16/9] w-full rounded-lg bg-gradient-to-br from-primary to-blue-800 flex items-center justify-center text-white">
-                                <p className="text-xs">{getContent('alt', 'Image Placeholder')}</p>
-                            </div>
-                        )}
                     </div>
                 );
             case 'image':
@@ -134,17 +89,119 @@ export const EmailPreview: React.FC<EmailPreviewProps> = ({
                     </div>
                 );
             case 'button':
+                const buttonData = typeof block.content === 'string' && block.content.startsWith('{')
+                    ? JSON.parse(block.content)
+                    : { label: block.content, url: '#' };
+
                 return (
                     <div key={index} className="flex justify-center mb-8">
-                        <button className="px-8 py-3 bg-primary text-white text-sm font-bold rounded-lg shadow-lg">
-                            {getContent('label', 'Click Here')}
-                        </button>
+                        <a
+                            href={buttonData.url}
+                            className="px-8 py-3 bg-primary text-white text-sm font-bold rounded-lg shadow-lg no-underline"
+                            onClick={(e) => e.preventDefault()} // Prevent navigation during preview
+                        >
+                            {buttonData.label}
+                        </a>
+                    </div>
+                );
+            case 'video':
+                const videoUrl = block.content;
+                const isYoutube = videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be');
+
+                // Function to extract YouTube ID for embedding
+                const getYouTubeId = (url: string) => {
+                    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+                    const match = url.match(regExp);
+                    return (match && match[2].length === 11) ? match[2] : null;
+                };
+
+                const youtubeId = isYoutube ? getYouTubeId(videoUrl) : null;
+
+                return (
+                    <div key={index} className="mb-8 w-full aspect-video rounded-lg overflow-hidden bg-slate-100 border border-slate-200 shadow-sm">
+                        {videoUrl.startsWith('http') ? (
+                            isYoutube && youtubeId ? (
+                                /* YouTube Embed for a "Live" feel in the preview */
+                                <iframe
+                                    className="w-full h-full"
+                                    src={`https://www.youtube.com/embed/${youtubeId}?rel=0&modestbranding=1`}
+                                    title="YouTube video player"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                />
+                            ) : (
+                                /* Fallback for direct MP4 links or other video hosts */
+                                <div className="relative w-full h-full bg-slate-900 flex items-center justify-center group">
+                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors" />
+                                    <div className="size-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform cursor-pointer">
+                                        <div className="w-0 h-0 border-t-[10px] border-t-transparent border-l-[18px] border-l-white border-b-[10px] border-b-transparent ml-1" />
+                                    </div>
+                                    <p className="absolute bottom-4 left-4 text-[10px] text-white/60 truncate max-w-[80%]">
+                                        External Video: {videoUrl}
+                                    </p>
+                                </div>
+                            )
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-full gap-2">
+                                <Video className="w-8 h-8 text-slate-300" />
+                                <span className="text-slate-400 text-xs">Enter a valid YouTube or Video URL</span>
+                            </div>
+                        )}
+                    </div>
+                );
+
+            case 'divider':
+                return <hr key={index} className="my-8 border-t border-slate-200 dark:border-slate-800" />;
+
+            // case 'columns':
+            //     let columnData = [];
+            //     try {
+            //         // We store the column content as a JSON string
+            //         columnData = JSON.parse(block.content);
+            //     } catch (e) {
+            //         // Fallback for old "number-only" data
+            //         columnData = Array(parseInt(block.content) || 2).fill("");
+            //     }
+
+            //     const colCount = columnData.length;
+
+            //     return (
+            //         <div key={index} className={`grid gap-4 mb-8 ${colCount === 3 ? 'grid-cols-3' : 'grid-cols-2'
+            //             }`}>
+            //             {columnData.map((text: string, i: number) => (
+            //                 <div key={i} className="flex flex-col">
+            //                     <div className="p-4 rounded-lg border border-slate-100 bg-slate-50/30 dark:bg-slate-800/20 min-h-[100px]">
+            //                         <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap">
+            //                             {text || `Column ${i + 1} content...`}
+            //                         </p>
+            //                     </div>
+            //                 </div>
+            //             ))}
+            //         </div>
+            //     );
+
+            case 'columns':
+                const columnData = safeParseColumns(block.content);
+                const colCount = columnData.length;
+
+                return (
+                    <div key={index} className={`grid gap-4 mb-8 ${colCount === 3 ? 'grid-cols-3' : 'grid-cols-2'
+                        }`}>
+                        {columnData.map((text: string, i: number) => (
+                            <div key={i} className="p-4 rounded-lg border border-slate-100 bg-slate-50/30 min-h-[100px]">
+                                <p className="text-sm text-slate-600 whitespace-pre-wrap">
+                                    {text || `Column ${i + 1} content...`}
+                                </p>
+                            </div>
+                        ))}
                     </div>
                 );
             default:
                 return null;
+
         }
     };
+
     return (
         <div className={`flex flex-col items-center py-6 lg:py-10 px-4 lg:px-6 ${className}`}>
             {/* Preview Controls */}
@@ -205,7 +262,8 @@ export const EmailPreview: React.FC<EmailPreviewProps> = ({
                     {/* Email Logo */}
                     <div className="flex justify-center mb-6 lg:mb-10">
                         <div className="h-8 w-32 lg:w-40 bg-slate-100 dark:bg-slate-800 rounded flex items-center justify-center">
-                            <span className="text-xs font-bold text-slate-400">YOUR LOGO</span>
+                            <img src="https://res.cloudinary.com/dhm9perrr/image/upload/e_background_removal,f_png/v1770035513/035203dd-0132-42a6-b863-c50ad270f6a3-removebg-preview_gmxzah.png
+" style={{ maxWidth: "100%", height: "auto" }} />
                         </div>
                     </div>
 
