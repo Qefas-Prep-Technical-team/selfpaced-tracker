@@ -664,7 +664,7 @@ export async function POST(req: NextRequest) {
     ];
 
     // 6. OpenAI Call
-    let response = await openai.chat.completions.create({
+    const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages,
       tools: tools.length > 0 ? tools : undefined,
