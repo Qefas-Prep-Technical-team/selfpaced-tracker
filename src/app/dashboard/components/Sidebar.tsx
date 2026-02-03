@@ -15,6 +15,7 @@ const navItems = [
   { icon: 'campaign', label: 'Campaigns', link: "/dashboard/campaigns" },
   { icon: 'bar_chart', label: 'Analytics', link: "/dashboard/analytics" },
   { icon: 'settings_input_antenna', label: 'Channel', link: "/dashboard/channel" },
+  { icon: 'network_intel_node', label: 'KnowledgeManager', link: "/dashboard/KnowledgeManager" },
   { icon: 'ads_click', label: 'Clicks', link: "/dashboard/clicks" },
   { icon: 'person_check', label: 'Invite', link: "/dashboard/invite", adminOnly: true }, // Added flag
 ];

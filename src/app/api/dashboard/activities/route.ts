@@ -54,18 +54,30 @@ export async function GET() {
         status: c.status === "human" ? "needs_action" : "success",
       })),
       // NEW: Mapping for deletions that includes Admin Name and Item Name
-      ...deletions.map((d: any) => ({
-        event: d.event, // e.g., "Inquiry Deleted"
-        user: `${d.adminName || "Admin"} removed ${d.user}`, // Result: "Tobi removed John Doe"
-        channel: {
-          icon: "delete_sweep",
-          name: d.channelName || "System",
-          color: "text-red-500",
-        },
-        time: formatDistanceToNow(new Date(d.timestamp), { addSuffix: true }),
-        timestamp: d.timestamp,
-        status: "failed", // Use 'failed' style (usually red) for deletions
-      })),
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+// app/api/activity/route.ts
+
+...deletions.map((d: any) => ({
+  // 1. Set the Admin Email as the primary "user"
+  user: d.adminEmail || 'admin@analytics.com.ng', 
+  
+  // 2. Clearly state what happened in the event name
+  event: 'Record Deleted', 
+  
+  // 3. Put the deleted item's name in the channel description
+  channel: { 
+    icon: 'delete_forever', 
+    name: `Removed: ${d.user}`, // This is the 'test-parent5@example.com'
+    color: 'text-red-500' 
+  },
+  
+  time: formatDistanceToNow(new Date(d.timestamp), { addSuffix: true }),
+  timestamp: d.timestamp,
+  
+  // 4. FIX: Change 'failed' to 'deleted' or 'info' 
+  // If your UI component shows "Failed" for 'failed', use 'deleted' or a custom string
+  status: 'deleted' 
+})),
     ]
       // Sort everything by actual date descending
       .sort(

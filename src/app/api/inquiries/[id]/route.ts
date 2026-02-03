@@ -131,15 +131,14 @@ export async function DELETE(
       );
     }
 
-    // 3. Log the activity BEFORE deleting the actual record
-    // We pass: Type, Item Name, Admin Name, and Channel Name
-    await logDeletion(
-      "Inquiry",
-      inquiry.parentName,
-      session.user?.name || "Admin",
-      inquiry.channelName || "Direct",
-    );
-
+  // 3. Log the activity BEFORE deleting the actual record
+// Pass the email from the session instead of the name
+await logDeletion(
+  "Inquiry",
+  inquiry.parentName,
+  session.user?.email || "unknown@admin.com", // CHANGE THIS LINE
+  inquiry.channelName || "Direct",
+);
     // 4. Proceed with your original logic (Update channel count and Delete)
     if (inquiry.channelId) {
       await Channel.findByIdAndUpdate(inquiry.channelId, {

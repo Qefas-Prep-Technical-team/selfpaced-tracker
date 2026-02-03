@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Copy, UserX, Search, Download, Loader2, ChevronLeft, ChevronRight, CheckCircle2, Lock } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
@@ -11,8 +11,13 @@ import { useSession } from 'next-auth/react'
 
 export function SubscriberTable() {
   const { data: session } = useSession();
-  const [searchTerm, setSearchTerm] = useState('');
   const queryClient = useQueryClient();
+  
+  // Search States
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  
+  // Pagination State
   const [page, setPage] = useState(1);
   const limit = 10;
 
@@ -20,23 +25,37 @@ export function SubscriberTable() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  // 2. Permission Check
+  // 1. Debounce Logic: Updates 'debouncedSearch' 500ms after user stops typing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setPage(1); // Always reset to page 1 on a new search
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Permission Check
   const userRole = (session?.user as any)?.role?.toUpperCase();
   const canManage = userRole === "ADMIN" || userRole === "EDITOR";
 
-  // 1. Fetch Paginated Data
+  // 2. Fetch Data (Added debouncedSearch to the Key and URL)
   const { data, isLoading, isPlaceholderData } = useQuery({
-    queryKey: ['subscribers', page],
-    queryFn: () => fetch(`/api/newsletter?page=${page}&limit=${limit}`).then(res => res.json()),
+    queryKey: ['subscribers', page, debouncedSearch],
+    queryFn: async () => {
+      const res = await fetch(`/api/newsletter?page=${page}&limit=${limit}&search=${debouncedSearch}`);
+      if (!res.ok) throw new Error('Network response was not ok');
+      return res.json();
+    },
     placeholderData: (previousData) => previousData,
-    refetchInterval: 5000,
+    refetchInterval: debouncedSearch ? false : 10000, // Pause auto-refetch while searching
   });
 
   const subscribers = data?.subscribers || [];
   const totalPages = data?.totalPages || 1;
   const totalResults = data?.total || 0;
 
-  // 2. Status Update Mutation
+  // 3. Mutations (Status Update)
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string, status: string }) =>
       fetch('/api/newsletter', {
@@ -49,30 +68,17 @@ export function SubscriberTable() {
     }
   });
 
-// 3. Delete Mutation
-const deleteMutation = useMutation({
-  mutationFn: (id: string) =>
-    fetch(`/api/newsletter?id=${id}`, { method: 'DELETE' }).then(res => res.json()),
-  onSuccess: () => {
-    // 1. Refresh the data in the table
-    queryClient.invalidateQueries({ queryKey: ['subscribers'] });
-    
-    // 2. CLOSE THE MODAL HERE
-    setIsModalOpen(false);
-    
-    // 3. Clear the selected ID
-    setSelectedId(null);
+  // 4. Mutations (Delete)
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) =>
+      fetch(`/api/newsletter?id=${id}`, { method: 'DELETE' }).then(res => res.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subscribers'] });
+      setIsModalOpen(false);
+      setSelectedId(null);
+    }
+  });
 
-    // Optional: Add a success notification
-    // toast.success("Subscriber removed");
-  },
-  onError: (error) => {
-    console.error("Delete failed:", error);
-    // Optional: alert("Failed to delete");
-  }
-});
-
-  // Helper for Status Badge Colors
   const getStatusStyles = (status: string) => {
     switch (status) {
       case 'active':
@@ -86,7 +92,14 @@ const deleteMutation = useMutation({
     }
   }
 
-  if (isLoading) return <div className="h-64 flex items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>;
+  if (isLoading && !isPlaceholderData) {
+    return (
+      <div className="h-64 flex flex-col items-center justify-center gap-2">
+        <Loader2 className="animate-spin text-primary" size={32} />
+        <p className="text-sm text-slate-500">Loading subscribers...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-white/5 rounded-xl border border-surface-light dark:border-white/10 shadow-sm overflow-hidden">
@@ -102,6 +115,11 @@ const deleteMutation = useMutation({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+          {isLoading && isPlaceholderData && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+               <Loader2 className="animate-spin text-slate-400" size={16} />
+            </div>
+          )}
         </div>
         <Button variant="primary" icon={Download}>Export</Button>
       </div>
@@ -118,43 +136,51 @@ const deleteMutation = useMutation({
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-light dark:divide-white/10">
-            {subscribers.map((subscriber: any) => (
-              <tr key={subscriber._id} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors group">
-                <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">
-                  {subscriber.email}
-                </td>
-                <td className="px-6 py-4">
-                  <select
-                    value={subscriber.status || 'active'}
-                    onChange={(e) => updateStatusMutation.mutate({ id: subscriber._id, status: e.target.value })}
-                    className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border cursor-pointer focus:outline-none appearance-none transition-all ${getStatusStyles(subscriber.status || 'active')}`}
-                  >
-                    <option value="active">Active</option>
-                    <option value="processing">Processing</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                </td>
-                <td className="px-6 py-4 text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                  {formatDistanceToNow(new Date(subscriber.subscribedAt), { addSuffix: true })}
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex justify-end gap-1">
-                   {canManage ? (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-slate-400 hover:text-red-500"
-                        onClick={() => { setSelectedId(subscriber._id); setIsModalOpen(true); }}
-                      >
-                        <UserX size={18} />
-                      </Button>
-                    ) : (
-                      <Lock size={14} className="text-slate-300" />
-                    )}
-                  </div>
+            {subscribers.length > 0 ? (
+              subscribers.map((subscriber: any) => (
+                <tr key={subscriber._id} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors group">
+                  <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">
+                    {subscriber.email}
+                  </td>
+                  <td className="px-6 py-4">
+                    <select
+                      value={subscriber.status || 'active'}
+                      onChange={(e) => updateStatusMutation.mutate({ id: subscriber._id, status: e.target.value })}
+                      className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border cursor-pointer focus:outline-none appearance-none transition-all ${getStatusStyles(subscriber.status || 'active')}`}
+                    >
+                      <option value="active">Active</option>
+                      <option value="processing">Processing</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </td>
+                  <td className="px-6 py-4 text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                    {subscriber.subscribedAt ? formatDistanceToNow(new Date(subscriber.subscribedAt), { addSuffix: true }) : 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex justify-end gap-1">
+                     {canManage ? (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-slate-400 hover:text-red-500"
+                          onClick={() => { setSelectedId(subscriber._id); setIsModalOpen(true); }}
+                        >
+                          <UserX size={18} />
+                        </Button>
+                      ) : (
+                        <Lock size={14} className="text-slate-300" />
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="px-6 py-12 text-center text-slate-500">
+                  No subscribers found matching your search.
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
@@ -162,7 +188,7 @@ const deleteMutation = useMutation({
       {/* Pagination Controls */}
       <div className="px-6 py-4 border-t border-surface-light dark:border-white/10 flex items-center justify-between">
         <p className="text-xs text-slate-500">
-          Page {page} of {totalPages}
+          Showing <strong>{subscribers.length}</strong> of <strong>{totalResults}</strong> subscribers
         </p>
         <div className="flex gap-2">
           <Button 
@@ -173,6 +199,9 @@ const deleteMutation = useMutation({
           >
             <ChevronLeft size={16} />
           </Button>
+          <div className="flex items-center px-3 text-xs font-medium">
+            {page} / {totalPages}
+          </div>
           <Button 
             variant="outline" 
             size="sm"
@@ -183,13 +212,13 @@ const deleteMutation = useMutation({
           </Button>
         </div>
       </div>
-      {/* Pagination & Confirm Modal ... */}
+
       <ConfirmModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={() => selectedId && deleteMutation.mutate(selectedId)}
         title="Remove Subscriber"
-        message="Are you sure you want to remove this email from your newsletter? This action cannot be undone."
+        message="Are you sure you want to remove this email? This action cannot be undone."
         isLoading={deleteMutation.isPending}
       />
     </div>

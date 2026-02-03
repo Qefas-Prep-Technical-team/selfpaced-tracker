@@ -4,7 +4,7 @@ import twilio from "twilio";
 
 // Define headers clearly
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://www.selfpaced.qefas.com', // Change this to your specific domain in production
+  'Access-Control-Allow-Origin': '*', // Change this to your specific domain in production
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
