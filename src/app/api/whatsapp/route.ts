@@ -586,39 +586,41 @@ const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID!, process.env.TWILIO_
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 /**
- * RAG Logic: Fetches school facts from MongoDB
+ * Improved RAG Logic: More flexible matching for your training data
  */
 async function getRelevantKnowledge(userMsg: string) {
+  // Extract words longer than 2 chars
   const words = userMsg.toLowerCase().split(/\W+/).filter(w => w.length > 2);
-  if (words.length === 0) return "";
-  const regexes = words.map(w => new RegExp(`\\b${w}\\b`, "i"));
+  if (words.length === 0) return "No specific context found.";
+  
+  // Fuzzy regex (removed \b for better matching of partial words like 'price' in 'pricing')
+  const regexes = words.map(w => new RegExp(w, "i"));
   
   const facts = await Knowledge.find({
     $or: [
       { category: { $in: regexes } }, 
       { question: { $in: regexes } }, 
-      { tags: { $in: regexes } }
+      { tags: { $in: regexes } },
+      { answer: { $in: regexes } } // Added answer search
     ]
-  }).limit(3);
+  }).limit(5); // Increased limit for better AI coverage
 
-  return facts.map(f => `- ${f.answer}`).join("\n");
+  if (facts.length === 0) return "No specific school data found for this query.";
+
+  return facts.map(f => `[Fact: ${f.question}]: ${f.answer}`).join("\n");
 }
 
 export async function POST(req: NextRequest) {
   try {
     await dbConnect();
 
-    // 1. Parse Twilio Data
     const formData = await req.formData();
     const userMsg = formData.get("Body")?.toString() || "";
     const from = formData.get("From")?.toString() || "";
     const to = formData.get("To")?.toString() || "";
 
-    if (!userMsg || !from) {
-      return new Response("<Response></Response>", { headers: { "Content-Type": "text/xml" } });
-    }
+    if (!userMsg || !from) return new Response("<Response></Response>", { headers: { "Content-Type": "text/xml" } });
 
-    // 2. Load Conversation
     let convo = await Conversation.findOne({ phoneNumber: from });
     if (!convo) {
       convo = await Conversation.create({
@@ -630,26 +632,27 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 3. Check for Human Takeover
-    if (convo.status === "human") {
-      return new Response("<Response></Response>", { headers: { "Content-Type": "text/xml" } });
-    }
+    if (convo.status === "human") return new Response("<Response></Response>", { headers: { "Content-Type": "text/xml" } });
 
     const knowledgeContext = await getRelevantKnowledge(userMsg);
     const isNewLead = convo.name === "New Lead";
 
-    // 4. Build Dynamic System Prompt
-    // If they aren't a New Lead, the instruction to ask for a name is physically GONE.
+    // Dynamic System Prompt
     const systemPrompt = isNewLead 
-      ? "You are the QEFAS assistant. This is a NEW user. You MUST politely ask for their name before doing anything else. Use the update_user_name tool to save it."
-      : `You are the QEFAS assistant. User's name is ${convo.name}. DO NOT ask for their name. Use this context: ${knowledgeContext}. If they want courses, say [SHOW_LIST].`;
+      ? "You are the QEFAS assistant. This is a NEW user. You MUST politely ask for their name first. Do NOT answer school questions until you have their name."
+      : `You are the QEFAS assistant. User's name is ${convo.name}. 
+         Use this Context to answer: 
+         ${knowledgeContext}
+         
+         Rules:
+         1. If the context doesn't have the answer, say you'll refer them to a human.
+         2. If they ask for courses or pricing, answer briefly then include the phrase [SHOW_LIST] at the end.`;
 
-    // 5. Dynamic Tools
     const tools: any[] = isNewLead ? [{
       type: "function",
       function: {
         name: "update_user_name",
-        description: "Saves the user's name to the database.",
+        description: "Saves the user's name.",
         parameters: {
           type: "object",
           properties: { newName: { type: "string" } },
@@ -663,7 +666,6 @@ export async function POST(req: NextRequest) {
       { role: "user", content: userMsg }
     ];
 
-    // 6. OpenAI Call
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages,
@@ -672,21 +674,18 @@ export async function POST(req: NextRequest) {
 
     let choice = response.choices[0].message;
 
-    // 7. Handle Tool Call (Name Update)
+    // Handle Name Update Tool
     if (choice.tool_calls && choice.tool_calls.length > 0) {
       const toolCall = choice.tool_calls[0];
       if (toolCall.type === 'function' && toolCall.function.name === 'update_user_name') {
         const args = JSON.parse(toolCall.function.arguments);
-        
-        // Save to DB
         convo.name = args.newName;
         await convo.save();
 
-        // REWRITE the system prompt for the second turn so it stops asking
-        messages[0].content = `You are the QEFAS assistant. User is now ${convo.name}. Address them by name and answer their original request. Context: ${knowledgeContext}`;
         messages.push(choice);
         messages.push({ role: "tool", tool_call_id: toolCall.id, content: "Success" });
-
+        
+        // Final response after saving name
         const secondRes = await openai.chat.completions.create({ model: "gpt-4o-mini", messages });
         choice = secondRes.choices[0].message;
       }
@@ -694,36 +693,33 @@ export async function POST(req: NextRequest) {
 
     const aiReply = choice.content || "";
 
-    // 8. Template Logic (Course List)
+    // Template + Reply Logic
+    const twiml = new twilio.twiml.MessagingResponse();
+    
     if (aiReply.includes("[SHOW_LIST]")) {
+      // Send the official template
       await twilioClient.messages.create({
         from: to, to: from,
         contentSid: 'HX88472bd867abd715b9b9723532f7859b',
         contentVariables: JSON.stringify({ "1": convo.name })
       });
-      
-      const botMsgObj = { body: "[Sent Course List Template]", sender: "bot", timestamp: new Date() };
-      convo.messages.push({ body: userMsg, sender: "user", timestamp: new Date() } as any);
-      convo.messages.push(botMsgObj as any);
-      await convo.save();
-      return new Response("<Response></Response>", { headers: { "Content-Type": "text/xml" } });
+      // Also send the AI's text explanation via TwiML so the user gets both
+      twiml.message(aiReply.replace("[SHOW_LIST]", ""));
+    } else {
+      twiml.message(aiReply);
     }
 
-    // 9. Save History & Final Response
+    // Save to DB and Update Dashboard
     const userObj = { body: userMsg, sender: "user", timestamp: new Date() };
     const botObj = { body: aiReply, sender: "bot", timestamp: new Date() };
     
     convo.messages.push(userObj as any);
     convo.messages.push(botObj as any);
-    convo.lastMessageAt = new Date();
     await convo.save();
 
-    // Trigger Pusher for Dashboard
     await pusher.trigger(`chat-${convo._id}`, "new-message", userObj);
     await pusher.trigger(`chat-${convo._id}`, "new-message", botObj);
 
-    const twiml = new twilio.twiml.MessagingResponse();
-    twiml.message(aiReply);
     return new Response(twiml.toString(), { headers: { "Content-Type": "text/xml" } });
 
   } catch (error) {
