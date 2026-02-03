@@ -24,6 +24,15 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
 
     const { parentName, childClass, whatsapp, channelId, channelName } = body
+    console.log( parentName, childClass, whatsapp, channelId, channelName)
+
+    if (!parentName || !whatsapp || !channelId || !channelName) {
+  return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+}
+if (channelId && !channelName) {
+  const channel = await Channel.findById(channelId);
+  if (channel) body.channelName = channel.name;
+}
   // 1. Strict Validation
     if (!parentName || parentName.length > 50) {
        return NextResponse.json({ error: 'Invalid Name' }, { status: 400, headers: corsHeaders });
@@ -109,16 +118,33 @@ export async function GET(req: NextRequest) {
 
     const page = Math.max(parseInt(searchParams.get("page") || "1", 10), 1);
     const limit = Math.max(parseInt(searchParams.get("limit") || "10", 10), 1);
+    const search = searchParams.get("search") || "";
 
     const skip = (page - 1) * limit;
 
+    // 1. Build the Search Filter
+    let query: any = {};
+    
+    if (search) {
+      query = {
+        $or: [
+          { parentName: { $regex: search, $options: "i" } },
+          { phone: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+          { channelName: { $regex: search, $options: "i" } },
+        ],
+      };
+    }
+
+    // 2. Execute Query and Count in parallel
+    // We pass the 'query' to both .find() and .countDocuments()
     const [inquiries, total] = await Promise.all([
-      Inquiry.find()
+      Inquiry.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean(),
-      Inquiry.countDocuments(),
+      Inquiry.countDocuments(query),
     ]);
 
     return NextResponse.json(

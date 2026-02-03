@@ -23,8 +23,11 @@ import { ConfirmModal } from '@/app/components/ui/ConfirmModal'
 
 
 const PAGE_SIZE = 5
+interface ChannelTableProps {
+  onEdit?: (channel: any) => void; // New Prop
+}
 
-export function ChannelTable() {
+export function ChannelTable({ onEdit }: ChannelTableProps) {
   const { data: session } = useSession();
   const { data, isLoading, error } = ChannelList()
   const channels = data?.data || []
@@ -197,7 +200,7 @@ export function ChannelTable() {
         </div>
       ),
     },
-   {
+ {
       header: 'Actions',
       accessor: (row: Channel) => (
         <div className="text-right">
@@ -205,15 +208,19 @@ export function ChannelTable() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm">
-                  <MoreVertical size={20} />
+                  <MoreVertical size={20} className="cursor-pointer"/>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleEdit(row)}>
-                  <Edit size={16} className="mr-2" /> Edit
+                {/* CALL onEdit HERE */}
+                <DropdownMenuItem 
+                  className="cursor-pointer" 
+                  onClick={() => onEdit?.(row)} 
+                >
+                  <Edit size={16} className="mr-2 " /> Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  className="text-red-600 focus:text-red-600"
+                  className="text-red-600 focus:text-red-600 cursor-pointer"
                   onClick={() => handleOpenDelete(row._id)}
                 >
                   <Trash size={16} className="mr-2" /> Delete
@@ -222,7 +229,7 @@ export function ChannelTable() {
             </DropdownMenu>
           ) : (
             <div className="flex justify-end pr-3">
-              <Lock size={16} className="text-slate-300 dark:text-slate-600"  />
+              <Lock size={16} className="text-slate-300 dark:text-slate-600 cursor-pointer"  />
             </div>
           )}
         </div>

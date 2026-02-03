@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // app/subscribers/page.tsx
 'use client'
-
 import { useState } from 'react'
 import { SubscriptionFlow } from './components/SubscriptionFlow'
 import { SubscriberTable } from './components/SubscriberTable'
@@ -47,11 +46,11 @@ export default function SubscribersPage() {
     }
   ];
 
- 
+
   return (
-    
-      <    >
-      
+
+    <    >
+
       <main className="flex-1  p-8 overflow-y-auto">
         <div className="max-w-6xl mx-auto space-y-8">
           {/* Page Heading */}
@@ -68,10 +67,10 @@ export default function SubscribersPage() {
           <SubscriptionFlow />
 
           {/* KPI Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {isLoading 
-            ? [1, 2, 3].map(i => <div key={i} className="h-32 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-xl" />)
-            : statsConfig.map((stat) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {isLoading
+              ? [1, 2, 3].map(i => <div key={i} className="h-32 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-xl" />)
+              : statsConfig.map((stat) => (
                 <StatCard
                   key={stat.id}
                   title={stat.title}
@@ -83,10 +82,10 @@ export default function SubscribersPage() {
                   progressColor={stat.progressColor}
                 />
               ))
-          }
-        </div>
+            }
+          </div>
           {/* Subscribers Table */}
-          <SubscriberTable/>
+          <SubscriberTable />
         </div>
       </main>
 
@@ -99,6 +98,6 @@ export default function SubscribersPage() {
           onClose={() => setShowToast(false)}
         />
       )}
-</>
+    </>
   )
 }

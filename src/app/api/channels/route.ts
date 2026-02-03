@@ -1,186 +1,156 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextRequest, NextResponse } from 'next/server';
-import cloudinary from '@/lib/cloudinary';
-import dbConnect from '@/lib/mongodb';
-import { Channel } from '@/models/Channel';
+import { NextRequest, NextResponse } from "next/server";
+import cloudinary from "@/lib/cloudinary";
+import dbConnect from "@/lib/mongodb";
+import { Channel } from "@/models/Channel";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { logDeletion } from "@/lib/activityLogger";
 
+// --- HELPERS ---
+const getPublicIdFromUrl = (url: string) => {
+  const match = url.match(/\/([^\/]+)\.(jpg|png|gif|webp)$/);
+  return match ? `channels/${match[1]}` : null;
+};
+
+// --- POST: CREATE ---
 export async function POST(req: Request) {
   try {
     await dbConnect();
-
-    // 1. Read as FormData directly (don't read as text first)
     const formData = await req.formData();
-    
-    // 2. Extract data
-    const name = formData.get('name') as string;
-    const type = formData.get('type') as string;
-    const file = formData.get('profileImage') as File | null;
+    const name = formData.get("name") as string;
+    const type = formData.get("type") as string;
+    const file = formData.get("profileImage") as File | null;
 
     const isExisting = await Channel.findOne({ name });
     if (isExisting) {
-      return NextResponse.json(
-        { error: 'Channel with this name already exists' },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: "Channel already exists" }, { status: 409 });
     }
 
-    // Validate required fields
-    if (!name || !type) {
-      return NextResponse.json(
-        { error: 'Name and type are required' },
-        { status: 400 }
-      );
-    }
-
-    let imageUrl = '';
-
-    // 3. Handle Cloudinary Upload
+    let imageUrl = "";
     if (file && file.size > 0) {
-      // Verify file type
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-      if (!allowedTypes.includes(file.type)) {
-        return NextResponse.json(
-          { error: 'Invalid file type. Only images are allowed.' },
-          { status: 400 }
-        );
-      }
-
-      // Convert File to buffer for Cloudinary
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-      
       const uploadResponse: any = await new Promise((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          { 
-            folder: 'channels',
-            resource_type: 'auto'
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        );
-        
-        uploadStream.end(buffer);
+        cloudinary.uploader.upload_stream({ folder: "channels" }, (error, result) => {
+          if (error) reject(error); else resolve(result);
+        }).end(buffer);
       });
-      
       imageUrl = uploadResponse.secure_url;
     }
 
-    // 4. Save to DB
     const newChannel = await Channel.create({
       name,
       type,
-      description: formData.get('description') as string || '',
-      sourceCategory: formData.get('sourceCategory') as string || '',
-      trackingId: formData.get('trackingId') as string || '',
-      isActive: formData.get('isActive') === 'true',
-      imageUrl
+      description: formData.get("description") || "",
+      sourceCategory: formData.get("sourceCategory") || "",
+      trackingId: formData.get("trackingId") || "",
+      isActive: formData.get("isActive") === "true",
+      status: formData.get("isActive") === "true" ? "active" : "paused",
+      imageUrl,
     });
 
     return NextResponse.json(newChannel, { status: 201 });
-
   } catch (error: any) {
-    console.error("Detailed Backend Error:", error);
-    
-    // Provide more specific error messages
-    if (error.message.includes('FormData')) {
-      return NextResponse.json(
-        { error: 'Invalid form data. Please ensure you are sending multipart/form-data.' }, 
-        { status: 400 }
-      );
-    }
-    
-    return NextResponse.json(
-      { error: error.message || "Internal Server Error" }, 
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
+// --- PUT: UPDATE ---
+export async function PUT(req: NextRequest) {
+  try {
+    await dbConnect();
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
 
+    if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+
+    const formData = await req.formData();
+    const existingChannel = await Channel.findById(id);
+    if (!existingChannel) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    let imageUrl = existingChannel.imageUrl;
+    const file = formData.get("profileImage") as File | null;
+
+    // If a new image is uploaded, swap them in Cloudinary
+    if (file && file.size > 0) {
+      // 1. Delete old image
+      if (existingChannel.imageUrl) {
+        const oldPublicId = getPublicIdFromUrl(existingChannel.imageUrl);
+        if (oldPublicId) await cloudinary.uploader.destroy(oldPublicId);
+      }
+
+      // 2. Upload new image
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const uploadResponse: any = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream({ folder: "channels" }, (error, result) => {
+          if (error) reject(error); else resolve(result);
+        }).end(buffer);
+      });
+      imageUrl = uploadResponse.secure_url;
+    }
+
+    const updatedData = {
+      name: formData.get("name"),
+      type: formData.get("type"),
+      description: formData.get("description"),
+      sourceCategory: formData.get("sourceCategory"),
+      status: formData.get("isActive") === "true" ? "active" : "paused",
+      imageUrl,
+    };
+
+    const updatedChannel = await Channel.findByIdAndUpdate(id, updatedData, { new: true });
+    return NextResponse.json(updatedChannel, { status: 200 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+// --- GET: LIST ---
 export async function GET(req: NextRequest) {
   try {
-    await dbConnect()
+    await dbConnect();
+    const { searchParams } = new URL(req.url);
+    const page = Math.max(parseInt(searchParams.get("page") || "1"), 1);
+    const limit = Math.max(parseInt(searchParams.get("limit") || "100"), 1); // Increased for management
+    const skip = (page - 1) * limit;
 
-    // 1️⃣ Read pagination params
-    const { searchParams } = new URL(req.url)
-
-    const page = Math.max(
-      parseInt(searchParams.get('page') || '1', 10),
-      1
-    )
-    const limit = Math.max(
-      parseInt(searchParams.get('limit') || '5', 10),
-      1
-    )
-
-    const skip = (page - 1) * limit
-
-    // 2️⃣ Query database
     const [channels, total] = await Promise.all([
-      Channel.find({})
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
+      Channel.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
       Channel.countDocuments(),
-    ])
+    ]);
 
-    // 3️⃣ Return paginated response
-    return NextResponse.json(
-      {
-        data: channels,
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-      { status: 200 }
-    )
+    return NextResponse.json({ data: channels, total, page, totalPages: Math.ceil(total / limit) });
   } catch (error) {
-    console.error('GET Channels Error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch channels' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Fetch failed" }, { status: 500 });
   }
 }
 
-// DELETE /api/channels?id=CHANNEL_ID
+// --- DELETE: REMOVE ---
 export async function DELETE(req: NextRequest) {
   try {
     await dbConnect();
+    const session = await getServerSession(authOptions);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
-
-    if (!id) {
-      return NextResponse.json({ error: 'Channel ID is required' }, { status: 400 });
-    }
-
+    const id = searchParams.get("id");
     const channel = await Channel.findById(id);
-    if (!channel) {
-      return NextResponse.json({ error: 'Channel not found' }, { status: 404 });
-    }
+    if (!channel) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    // Delete Cloudinary image if it exists
+    // Activity Log
+    await logDeletion("Channel", channel.name, session.user?.email || "Admin", "Settings");
+
+    // Cloudinary Cleanup
     if (channel.imageUrl) {
-      // Extract public_id from URL
-      const publicIdMatch = channel.imageUrl.match(/\/([^\/]+)\.(jpg|png|gif|webp)$/);
-      const public_id = publicIdMatch ? `channels/${publicIdMatch[1]}` : null;
-
-      if (public_id) {
-        await cloudinary.uploader.destroy(public_id, { resource_type: 'image' });
-      }
+      const publicId = getPublicIdFromUrl(channel.imageUrl);
+      if (publicId) await cloudinary.uploader.destroy(publicId);
     }
 
     await Channel.findByIdAndDelete(id);
-
-    return NextResponse.json({ message: 'Channel deleted successfully' }, { status: 200 });
-
+    return NextResponse.json({ message: "Deleted" });
   } catch (error: any) {
-    console.error('DELETE Channel Error:', error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

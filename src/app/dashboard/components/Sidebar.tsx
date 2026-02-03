@@ -11,16 +11,18 @@ const navItems = [
   { icon: 'dashboard', label: 'Dashboard', link: "/dashboard/" },
   { icon: 'mail', label: 'Inbox', link: "/dashboard/inbox" },
   { icon: 'contacts', label: 'inquiries', link: "/dashboard/inquiries" },
-  { icon: 'campaign', label: 'Newsletters', link: "/dashboard/newsletters" },
+  { icon: 'newspaper', label: 'Newsletters', link: "/dashboard/newsletters" },
+  { icon: 'campaign', label: 'Campaigns', link: "/dashboard/campaigns" },
   { icon: 'bar_chart', label: 'Analytics', link: "/dashboard/analytics" },
   { icon: 'settings_input_antenna', label: 'Channel', link: "/dashboard/channel" },
+  { icon: 'network_intel_node', label: 'KnowledgeManager', link: "/dashboard/KnowledgeManager" },
   { icon: 'ads_click', label: 'Clicks', link: "/dashboard/clicks" },
   { icon: 'person_check', label: 'Invite', link: "/dashboard/invite", adminOnly: true }, // Added flag
 ];
 
 export default function Sidebar() {
-    const { data: session, status: sessionStatus } = useSession();
-    // 1. Get the current role (and normalize to lowercase)
+  const { data: session, status: sessionStatus } = useSession();
+  // 1. Get the current role (and normalize to lowercase)
   const userRole = (session?.user as any)?.role?.toLowerCase();
 
   // 2. Filter the items
