@@ -574,10 +574,6 @@ import Knowledge from "@/models/Knowledge";
 
 export const runtime = "nodejs";
 
-/* -----------------------------------
-   Initialize services
------------------------------------ */
-
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID!,
   key: process.env.NEXT_PUBLIC_PUSHER_KEY!,
@@ -589,66 +585,39 @@ const pusher = new Pusher({
 const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID!, process.env.TWILIO_AUTH_TOKEN!);
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-/**
- * RAG Logic: Fetches facts from MongoDB based on user message keywords
- */
 async function getRelevantKnowledge(userMsg: string) {
-  const words = userMsg.toLowerCase().split(/\W+/).filter(w => w.length > 3);
+  const words = userMsg.toLowerCase().split(/\W+/).filter(w => w.length > 2);
   if (words.length === 0) return "";
-
+  const regexes = words.map(w => new RegExp(w, "i"));
+  
   const facts = await Knowledge.find({
-    $or: [
-      { category: { $in: words.map(w => new RegExp(w, "i")) } },
-      { tags: { $in: words.map(w => new RegExp(w, "i")) } }
-    ]
+    $or: [{ category: { $in: regexes } }, { question: { $in: regexes } }, { tags: { $in: regexes } }]
   }).limit(3);
 
   return facts.map(f => `- ${f.answer}`).join("\n");
 }
 
-const tools: any[] = [
-  {
-    type: "function",
-    function: {
-      name: "update_user_name",
-      description: "Updates the user's name in the database when they provide it.",
-      parameters: {
-        type: "object",
-        properties: {
-          newName: { type: "string", description: "The person's name" }
-        },
-        required: ["newName"]
-      }
+const tools: any[] = [{
+  type: "function",
+  function: {
+    name: "update_user_name",
+    description: "Updates the user's name in the database.",
+    parameters: {
+      type: "object",
+      properties: { newName: { type: "string" } },
+      required: ["newName"]
     }
   }
-];
-
-const COURSE_MAP: Record<string, string> = {
-  "course_sss1": "sss1-course-self-paced-class-promo/",
-  "course_sss2": "sss2-course-self-paced-class-promo/",
-  "course_sss3": "sss3-course-self-paced-class-promo/",
-  "course_jss1": "jss1-course-self-paced-class-promo/",
-  "course_jss2": "jss2-course-self-paced-class-promo/",
-  "course_jss3": "jss3-course-self-paced-class-promo/"
-};
+}];
 
 export async function POST(req: NextRequest) {
   try {
     await dbConnect();
-
-    /* 1. Parse Twilio Webhook Data */
     const formData = await req.formData();
     const userMsg = formData.get("Body")?.toString() || "";
     const from = formData.get("From")?.toString() || "";
     const to = formData.get("To")?.toString() || "";
-    const profileName = formData.get("ProfileName")?.toString() || "Student";
-    const listItemId = formData.get("ListId")?.toString(); 
 
-    if (!userMsg || !from) {
-      return new Response("<Response></Response>", { headers: { "Content-Type": "text/xml" } });
-    }
-
-    /* 2. Find or Create Conversation */
     let convo = await Conversation.findOne({ phoneNumber: from });
     if (!convo) {
       convo = await Conversation.create({
@@ -658,75 +627,63 @@ export async function POST(req: NextRequest) {
         status: "bot",
         lastMessageAt: new Date(),
       });
-
-      // Notify Activity Feed of NEW conversation
-      await pusher.trigger("dashboard-updates", "new-activity", {
-        event: 'New WhatsApp Lead',
-        user: from.replace('whatsapp:', ''),
-        channel: { icon: 'chat', name: 'WhatsApp', color: 'text-green-500' },
-        time: 'Just now',
-        status: 'needs_action'
-      });
     }
 
-    /* 4. Knowledge Retrieval & History Tracking */
     const knowledgeContext = await getRelevantKnowledge(userMsg);
-    const userMessageObj = { body: userMsg, sender: "user", timestamp: new Date() };
-    convo.messages.push(userMessageObj as any);
+    convo.messages.push({ body: userMsg, sender: "user", timestamp: new Date() } as any);
     await convo.save();
 
-    // Trigger Pusher for real-time dashboard
-    const channelName = `chat-${convo._id.toString()}`;
-    await pusher.trigger(channelName, "new-message", userMessageObj);
-    
-    // Update the sidebar list
-    await pusher.trigger("chat-updates", "new-message", {
-      conversationId: convo._id.toString(),
-      body: userMsg,
-      sender: "user"
-    });
+    if (convo.status === "human") return new Response("<Response></Response>", { headers: { "Content-Type": "text/xml" } });
 
-    /* 4. Stop AI if Human Took Over */
-    if (convo.status === "human") {
+    // AI Prompt Logic
+    const nameInstruction = convo.name === "New Lead" 
+      ? "Ask for their name politely first." 
+      : `User is ${convo.name}. Don't ask for their name again.`;
+
+    const messages: any[] = [
+      { role: "system", content: `You are the QEFAS assistant. ${nameInstruction} Context: ${knowledgeContext}. If they want courses, say [SHOW_LIST].` },
+      { role: "user", content: userMsg }
+    ];
+
+    const response = await openai.chat.completions.create({ model: "gpt-4o-mini", messages, tools });
+    let choice = response.choices[0].message;
+
+    // HANDLE TOOL CALL (NAME UPDATE)
+    if (choice.tool_calls) {
+      const toolCall = choice.tool_calls[0];
+      if (toolCall.type === 'function') {
+        const args = JSON.parse(toolCall.function.arguments);
+        convo.name = args.newName;
+        await convo.save();
+
+        messages.push(choice);
+        messages.push({ role: "tool", tool_call_id: toolCall.id, content: "Success" });
+        
+        const secondRes = await openai.chat.completions.create({ model: "gpt-4o-mini", messages });
+        choice = secondRes.choices[0].message;
+      }
+    }
+
+    const aiReply = choice.content || "";
+
+    // Template Logic
+    if (aiReply.includes("[SHOW_LIST]")) {
+      await twilioClient.messages.create({
+        from: to, to: from,
+        contentSid: 'HX88472bd867abd715b9b9723532f7859b',
+        contentVariables: JSON.stringify({ "1": convo.name })
+      });
       return new Response("<Response></Response>", { headers: { "Content-Type": "text/xml" } });
     }
 
-    /* 5. OpenAI Chat Completion */
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `You are the Official AI Assistant for QEFAS Prep School... (rest of your prompt)`
-        },
-        { role: "user", content: userMsg }
-      ],
-      temperature: 0.7,
-      max_tokens: 300,
-    });
-
-    const aiReply = response.choices[0].message.content || "A counselor will assist you shortly.";
-
-    /* 6. Save AI Reply & Trigger Real-time */
-    const aiMessageObj = {
-      body: aiReply,
-      sender: "bot",
-      timestamp: new Date(),
-    };
-
-    convo.messages.push(aiMessageObj as any);
+    convo.messages.push({ body: aiReply, sender: "bot", timestamp: new Date() } as any);
     await convo.save();
-    await pusher.trigger(channelName, "new-message", aiMessageObj);
 
     const twiml = new twilio.twiml.MessagingResponse();
     twiml.message(aiReply);
-
-    return new Response(twiml.toString(), {
-      headers: { "Content-Type": "text/xml" },
-    });
+    return new Response(twiml.toString(), { headers: { "Content-Type": "text/xml" } });
 
   } catch (error) {
-    console.error("WhatsApp Webhook Error:", error);
     return NextResponse.json({ error: "Internal Error" }, { status: 500 });
   }
 }
