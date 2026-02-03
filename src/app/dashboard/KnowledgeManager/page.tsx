@@ -5,9 +5,9 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 interface IKnowledge {
   _id?: string;
   category: string;
-  question: string; // The Title/Keyword field
+  question: string;
   answer: string;
-  tags: string[];   // Aligned with your Mongoose Schema
+  tags: string[];
 }
 
 export default function KnowledgeCenter() {
@@ -37,6 +37,31 @@ export default function KnowledgeCenter() {
   useEffect(() => {
     fetchKnowledge();
   }, [fetchKnowledge]);
+
+  const handleBulkUpload = async () => {
+    const rawData = prompt("Paste your JSON array here:");
+    if (!rawData) return;
+    try {
+      const parsed = JSON.parse(rawData);
+      if (!Array.isArray(parsed)) return alert("Data must be an array of objects!");
+      
+      setLoading(true);
+      const res = await fetch("/api/knowledge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(parsed),
+      });
+
+      if (res.ok) {
+        alert("Bulk upload successful!");
+        fetchKnowledge();
+      }
+    } catch (e) {
+      alert("Invalid JSON format. Please check your data.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredList = useMemo(() => {
     return knowledgeList.filter((item) => {
@@ -86,18 +111,27 @@ export default function KnowledgeCenter() {
             </div>
             <p className="text-slate-500">Manage facts and tags to populate your AI&apos;s brain.</p>
           </div>
+          {/* Added Bulk Import Button to Header */}
+          <button 
+            onClick={handleBulkUpload}
+            className="hidden md:flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-sm transition-all"
+          >
+            <span className="material-symbols-outlined text-sm">upload_file</span>
+            Bulk Import
+          </button>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           {/* LEFT PANEL: INPUT FORM */}
           <div className="w-full lg:w-96 shrink-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col shadow-sm sticky top-8">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="text-lg font-bold">Add Knowledge</h3>
-              <p className="text-xs text-slate-400 mt-1">Populate training facts here</p>
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-bold">Add Knowledge</h3>
+                <p className="text-xs text-slate-400 mt-1">Populate training facts here</p>
+              </div>
             </div>
 
             <div className="p-6 flex flex-col gap-5">
-              {/* Title Input */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Knowledge Title (Keywords)</label>
                 <input
@@ -108,7 +142,6 @@ export default function KnowledgeCenter() {
                 />
               </div>
 
-              {/* Category Input */}
               <div className="flex flex-col gap-1.5">
                 <div className="flex justify-between items-center">
                   <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Category</label>
@@ -136,7 +169,6 @@ export default function KnowledgeCenter() {
                 )}
               </div>
 
-              {/* Answer/Fact Input */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Fact Details</label>
                 <textarea
@@ -147,7 +179,6 @@ export default function KnowledgeCenter() {
                 ></textarea>
               </div>
 
-              {/* TAGS INPUT - NEW */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Tags (Comma separated)</label>
                 <input
@@ -198,37 +229,71 @@ export default function KnowledgeCenter() {
                     <h4 className="text-slate-900 dark:text-white font-bold text-lg">{item.question}</h4>
                     <p className="text-slate-400 text-sm line-clamp-1 mt-1">{item.answer}</p>
                   </div>
-                  <span className="material-symbols-outlined text-slate-300 group-hover:text-primary">edit_note</span>
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-slate-300 group-hover:text-primary">edit_note</span>
+                  </div>
                 </div>
               ))}
+              {filteredList.length === 0 && (
+                <div className="p-12 text-center text-slate-400 italic">No matches found.</div>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* MODAL FOR PREVIEW/EDIT */}
+      {/* MODAL FOR PREVIEW/EDIT (POP-UP) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
           <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-3xl shadow-2xl p-8 relative">
-            <button onClick={() => setIsModalOpen(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-900">
+            <button onClick={() => setIsModalOpen(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 transition-colors">
               <span className="material-symbols-outlined">close</span>
             </button>
-            <h2 className="text-2xl font-black mb-2">{formData.question}</h2>
-            <div className="flex gap-2 mb-6">
-               {formData.tags.map(t => <span key={t} className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-xs font-bold text-slate-500">#{t}</span>)}
+            
+            <div className="mb-6">
+              <span className="text-xs font-black uppercase tracking-widest text-primary mb-2 block">{formData.category}</span>
+              <h2 className="text-2xl font-black">{formData.question}</h2>
+              <div className="flex flex-wrap gap-2 mt-3">
+                {formData.tags.map(t => (
+                  <span key={t} className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-xs font-bold text-slate-500">#{t}</span>
+                ))}
+              </div>
             </div>
-            <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl mb-8">
+
+            <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl mb-8 border border-slate-100 dark:border-slate-800">
               <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">{formData.answer}</p>
             </div>
+
             <div className="flex justify-between items-center">
-              <button onClick={async () => {
-                if(confirm("Delete this fact?")){
-                  await fetch(`/api/knowledge?id=${formData._id}`, { method: 'DELETE' });
-                  setIsModalOpen(false);
-                  fetchKnowledge();
-                }
-              }} className="text-red-500 font-bold text-sm">Delete Fact</button>
-              <button onClick={() => setIsModalOpen(false)} className="px-8 py-3 bg-primary text-white rounded-xl font-bold">Close Preview</button>
+              <button 
+                onClick={async () => {
+                  if(confirm("Are you sure you want to delete this fact? This cannot be undone.")){
+                    await fetch(`/api/knowledge?id=${formData._id}`, { method: 'DELETE' });
+                    setIsModalOpen(false);
+                    fetchKnowledge();
+                  }
+                }} 
+                className="text-red-500 hover:text-red-600 font-bold text-sm transition-colors"
+              >
+                Delete Fact
+              </button>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => {
+                    // This sets the form data so the user can edit it in the left panel
+                    setIsModalOpen(false);
+                  }} 
+                  className="px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-bold"
+                >
+                  Edit in Form
+                </button>
+                <button 
+                  onClick={() => setIsModalOpen(false)} 
+                  className="px-8 py-3 bg-primary text-white rounded-xl font-bold hover:opacity-90 transition-opacity"
+                >
+                  Done
+                </button>
+              </div>
             </div>
           </div>
         </div>

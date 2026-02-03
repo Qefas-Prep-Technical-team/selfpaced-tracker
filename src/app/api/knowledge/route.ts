@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
-// Ensure you have a DB connection utility
 import Knowledge from "@/models/Knowledge";
 import dbConnect from "@/lib/mongodb";
 
@@ -19,16 +19,25 @@ export async function GET(request: Request) {
   }
 }
 
-// 2. POST: Add new training data
+// 2. POST: Add new training data (Supports Single and Bulk)
 export async function POST(request: Request) {
   try {
     await dbConnect();
     const body = await request.json();
     
+    // Check if the body is an array (Bulk Upload)
+    if (Array.isArray(body)) {
+      // insertMany is highly optimized for large datasets
+      const newFacts = await Knowledge.insertMany(body);
+      return NextResponse.json(newFacts, { status: 201 });
+    }
+
+    // Otherwise, handle as a single object
     const newFact = await Knowledge.create(body);
     return NextResponse.json(newFact, { status: 201 });
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to create fact" }, { status: 400 });
+  } catch (error: any) {
+    console.error("POST Error:", error);
+    return NextResponse.json({ error: error.message || "Failed to create fact" }, { status: 400 });
   }
 }
 
@@ -40,9 +49,11 @@ export async function PUT(request: Request) {
     const { _id, ...updateData } = body;
 
     const updatedFact = await Knowledge.findByIdAndUpdate(_id, updateData, {
-      new: true, // Returns the modified document
+      new: true,
       runValidators: true,
     });
+
+    if (!updatedFact) return NextResponse.json({ error: "Fact not found" }, { status: 404 });
 
     return NextResponse.json(updatedFact, { status: 200 });
   } catch (error) {
