@@ -113,6 +113,7 @@ export async function POST(req: NextRequest) {
         lastMessageAt: new Date(),
       });
     }
+const isNameUnset = convo.name === "New Lead";
 
     /* -------------------- Direct Course Selection -------------------- */
     const selectionKey = listItemId || userMsg;
@@ -186,6 +187,8 @@ RULES:
 4. Use [SHOW_WEBSITE] for the website.
 5. Keep replies under 60 words.
 6.If the user shows intent to enroll, buy, register, or start classes, ALWAYS respond with [SHOW_LIST].
+7. If Customer Name is NOT "New Lead", NEVER ask for the user's name again.
+
 
       `,
     };
@@ -213,37 +216,75 @@ RULES:
       ],
     });
 
-    let choice = completion.choices[0].message;
+    const choice = completion.choices[0].message;
 
     /* -------------------- Tool Handling (FIXED) -------------------- */
-    if (choice.tool_calls?.length) {
-      for (const toolCall of choice.tool_calls) {
-        if (toolCall.type === "function" && toolCall.function.name === "update_user_name") {
-          const args = JSON.parse(toolCall.function.arguments);
+    // if (choice.tool_calls?.length) {
+    //   for (const toolCall of choice.tool_calls) {
+    //     if (toolCall.type === "function" && toolCall.function.name === "update_user_name") {
+    //       const args = JSON.parse(toolCall.function.arguments);
 
-          if (args.newName) {
-            convo.name = args.newName;
-            await convo.save();
+    //       if (args.newName) {
+    //         convo.name = args.newName;
+    //         await convo.save();
 
-            const secondPass = await openai.chat.completions.create({
-              model: "gpt-4o-mini",
-              messages: [
-                systemPrompt,
-                ...history,
-                choice,
-                {
-                  role: "tool",
-                  tool_call_id: toolCall.id,
-                  content: `Name updated to ${args.newName}`,
-                },
-              ],
-            });
+    //         const secondPass = await openai.chat.completions.create({
+    //           model: "gpt-4o-mini",
+    //           messages: [
+    //             systemPrompt,
+    //             ...history,
+    //             choice,
+    //             {
+    //               role: "tool",
+    //               tool_call_id: toolCall.id,
+    //               content: `Name updated to ${args.newName}`,
+    //             },
+    //           ],
+    //         });
 
-            choice = secondPass.choices[0].message;
-          }
-        }
+    //         choice = secondPass.choices[0].message;
+    //       }
+    //     }
+    //   }
+    // }
+if (choice.tool_calls?.length && isNameUnset) {
+  for (const toolCall of choice.tool_calls) {
+    if (
+      toolCall.type === "function" &&
+      toolCall.function.name === "update_user_name"
+    ) {
+      const args = JSON.parse(toolCall.function.arguments);
+
+      if (args.newName && convo.name === "New Lead") {
+        convo.name = args.newName.trim();
+        await convo.save();
+
+        // 👇 IMPORTANT: reply directly, DO NOT re-run onboarding
+        const aiReply = `Nice to meet you, ${convo.name}! 😊 How can I help you today?`;
+
+        convo.messages.push({
+          body: aiReply,
+          sender: "bot",
+          timestamp: new Date(),
+        });
+
+        await convo.save();
+
+        await pusher.trigger(`chat-${convo._id}`, "new-message", {
+          body: aiReply,
+          sender: "bot",
+        });
+
+        const twiml = new twilio.twiml.MessagingResponse();
+        twiml.message(aiReply);
+
+        return new Response(twiml.toString(), {
+          headers: { "Content-Type": "text/xml" },
+        });
       }
     }
+  }
+}
 
     const aiReply = choice.content || "How else can I help you today?";
 
