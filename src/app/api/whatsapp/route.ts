@@ -185,6 +185,8 @@ RULES:
 3. Use [SHOW_LIST] to show courses.
 4. Use [SHOW_WEBSITE] for the website.
 5. Keep replies under 60 words.
+6.If the user shows intent to enroll, buy, register, or start classes, ALWAYS respond with [SHOW_LIST].
+
       `,
     };
 
