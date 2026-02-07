@@ -293,45 +293,81 @@ RULES:
     const aiReply = choice.content || "How else can I help you today?";
 
     /* -------------------- Button Interception -------------------- */
+    // for (const key of Object.keys(BUTTON_MAP)) {
+    //   if (aiReply.includes(key)) {
+    //     await twilioClient.messages.create({
+    //       from: to,
+    //       to: rawFrom,
+    //       contentSid: BUTTON_MAP[key],
+    //       contentVariables: JSON.stringify({ "1": convo.name }),
+    //     });
+
+    //     convo.messages.push({
+    //       body: aiReply,
+    //       sender: "bot",
+    //       timestamp: new Date(),
+    //     });
+
+    //     await convo.save();
+
+    //     return new Response("<Response></Response>", {
+    //       headers: { "Content-Type": "text/xml" },
+    //     });
+    //   }
+    // }
+
+    let buttonKeyUsed: string | null = null;
+    if (buttonKeyUsed && convo?.lastButtonSent === buttonKeyUsed) {
+      return new Response("<Response></Response>", {
+        headers: { "Content-Type": "text/xml" },
+      });
+    }
+
     for (const key of Object.keys(BUTTON_MAP)) {
       if (aiReply.includes(key)) {
-        await twilioClient.messages.create({
-          from: to,
-          to: rawFrom,
-          contentSid: BUTTON_MAP[key],
-          contentVariables: JSON.stringify({ "1": convo.name }),
-        });
-
-        convo.messages.push({
-          body: aiReply,
-          sender: "bot",
-          timestamp: new Date(),
-        });
-
-        await convo.save();
-
-        return new Response("<Response></Response>", {
-          headers: { "Content-Type": "text/xml" },
-        });
+        buttonKeyUsed = key;
+        break;
       }
+    }
+
+    const cleanReply = aiReply
+      .replace("[SHOW_LIST]", "")
+      .replace("[SHOW_WEBSITE]", "")
+      .trim();
+    convo.lastButtonSent = buttonKeyUsed;
+    await convo.save();
+    if (buttonKeyUsed) {
+      await twilioClient.messages.create({
+        from: to,
+        to: rawFrom,
+        contentSid: BUTTON_MAP[buttonKeyUsed],
+        contentVariables: JSON.stringify({ "1": convo.name }),
+      });
+
+      convo.messages.push({
+        body: cleanReply,
+        sender: "bot",
+        timestamp: new Date(),
+      });
+
+      convo.lastButtonSent = buttonKeyUsed;
+      await convo.save();
+
+      return new Response("<Response></Response>", {
+        headers: { "Content-Type": "text/xml" },
+      });
     }
 
     /* -------------------- Final Message -------------------- */
     convo.messages.push({
-      body: aiReply,
+      body: cleanReply,
       sender: "bot",
       timestamp: new Date(),
     });
-
     await convo.save();
 
-    await pusher.trigger(channel, "new-message", {
-      body: aiReply,
-      sender: "bot",
-    });
-
     const twiml = new twilio.twiml.MessagingResponse();
-    twiml.message(aiReply);
+    twiml.message(cleanReply);
 
     return new Response(twiml.toString(), {
       headers: { "Content-Type": "text/xml" },
