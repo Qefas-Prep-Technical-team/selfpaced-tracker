@@ -9,6 +9,9 @@ export async function GET(req: NextRequest) {
     const range = searchParams.get("range") || "6m";
     const fromStr = searchParams.get("from");
     const toStr = searchParams.get("to");
+    const studentClass = searchParams.get("class");
+    const status = searchParams.get("status");
+    const channel = searchParams.get("channel");
 
     const now = new Date();
     let startDate: Date;
@@ -18,15 +21,23 @@ export async function GET(req: NextRequest) {
     if (fromStr) {
       startDate = new Date(fromStr);
       if (toStr) endDate = new Date(toStr);
-      // Calculate diff in months for the table generation
       monthsToFetch = (endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth()) + 1;
     } else {
-      if (range === "3m") monthsToFetch = 3;
-      if (range === "12m") monthsToFetch = 12;
-      startDate = new Date(now.getFullYear(), now.getMonth() - monthsToFetch + 1, 1);
+      const days = parseInt(range);
+      if (!isNaN(days)) {
+          startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
+          monthsToFetch = Math.ceil(days / 30) + 1;
+      } else {
+          if (range === "3m") monthsToFetch = 3;
+          if (range === "12m") monthsToFetch = 12;
+          startDate = new Date(now.getFullYear(), now.getMonth() - monthsToFetch + 1, 1);
+      }
     }
 
     const matchFilter: any = { createdAt: { $gte: startDate, $lte: endDate } };
+    if (studentClass && studentClass !== 'all') matchFilter.studentClass = studentClass;
+    if (status && status !== 'all') matchFilter.status = status;
+    if (channel && channel !== 'all') matchFilter.channelName = channel;
 
     // Aggregate Inquiries by Month and Channel
     const trends = await Inquiry.aggregate([

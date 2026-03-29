@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
     const toStr = searchParams.get("to");
     const studentClass = searchParams.get("class");
     const status = searchParams.get("status");
+    const channel = searchParams.get("channel");
 
     let startDate: Date;
     let endDate = new Date();
@@ -26,6 +27,7 @@ export async function GET(req: NextRequest) {
     const matchFilter: any = { createdAt: { $gte: startDate, $lte: endDate } };
     if (studentClass && studentClass !== 'all') matchFilter.studentClass = studentClass;
     if (status && status !== 'all') matchFilter.status = status;
+    if (channel && channel !== 'all') matchFilter.channelName = channel;
 
     // Aggregate Inquiries by Channel
     const performance = await Inquiry.aggregate([

@@ -80,7 +80,7 @@ export default function ChannelAnalyticsPage() {
     }
 
     const { data: trendData = [], isLoading: isLoadingTrends } = useQuery({
-        queryKey: ['channel-trends-detailed', range, startDate, endDate, showCustom],
+        queryKey: ['channel-trends-detailed', range, startDate, endDate, showCustom, selectedClass, selectedStatus],
         queryFn: () => fetch(buildUrl('/api/analytics/channel-trends')).then(res => res.json())
     });
 
@@ -100,10 +100,12 @@ export default function ChannelAnalyticsPage() {
         )
     }
 
-    // Extract all unique channels from trend data for dynamic coloring/legend
-    const channels = trendData.length > 0
-        ? Object.keys(trendData[0]).filter(k => k !== 'name')
-        : []
+    // Extract all unique channels from ALL trend data points
+    const channels = Array.from(new Set(
+        trendData.flatMap((item: any) => 
+            Object.keys(item).filter(k => k !== 'name')
+        )
+    ));
 
     const colors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4']
 
@@ -167,12 +169,13 @@ export default function ChannelAnalyticsPage() {
                                 onChange={(e) => setSelectedClass(e.target.value)}
                                 className="bg-white/70 backdrop-blur-md dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-white outline-none focus:ring-4 focus:ring-primary/10 shadow-sm transition-all"
                             >
-                                <option value="all">Every Class</option>
-                                <option value="Creche">Creche</option>
-                                <option value="Preschool">Preschool</option>
-                                <option value="Lower Primary">Lower Primary</option>
-                                <option value="Upper Primary">Upper Primary</option>
-                                <option value="College">College</option>
+                                <option value="all">Every Student</option>
+                                <option value="JSS1">JSS1</option>
+                                <option value="JSS2">JSS2</option>
+                                <option value="JSS3">JSS3</option>
+                                <option value="SS1">SS1</option>
+                                <option value="SS2">SS2</option>
+                                <option value="SS3">SS3</option>
                             </select>
 
                             <select

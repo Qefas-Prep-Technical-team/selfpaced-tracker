@@ -19,8 +19,8 @@ interface FilterProps {
 
 export function ChannelTrendsChart({ filter }: FilterProps) {
   const { data: trendData = [], isLoading } = useQuery({
-    queryKey: ['channel-trends', filter.timeRange],
-    queryFn: () => fetch(`/api/analytics/channel-trends?range=${filter.timeRange}`).then(res => res.json()),
+    queryKey: ['channel-trends', filter.timeRange, filter.channel],
+    queryFn: () => fetch(`/api/analytics/channel-trends?range=${filter.timeRange}&channel=${filter.channel}`).then(res => res.json()),
   });
 
   if (isLoading) {
@@ -32,10 +32,12 @@ export function ChannelTrendsChart({ filter }: FilterProps) {
     );
   }
 
-  // Get keys from the first data point (except 'name') to dynamically generate lines
-  const channelKeys = trendData.length > 0 
-    ? Object.keys(trendData[0]).filter(k => k !== 'name') 
-    : [];
+  // Extract all unique channel keys from ALL data points
+  const channelKeys = Array.from(new Set(
+    trendData.flatMap((item: any) => 
+      Object.keys(item).filter(k => k !== 'name' && k !== 'total')
+    )
+  )) as string[];
 
   const COLORS = ['#6366f1', '#a855f7', '#ec4899', '#f97316', '#22c55e', '#06b6d4'];
 

@@ -68,7 +68,7 @@ export function DashboardControls({ timeRange, setTimeRange, channel, setChannel
           >
             <option value="all">Global (All Channels)</option>
             {channels?.map((ch: any) => (
-              <option key={ch._id} value={ch._id}>
+              <option key={ch._id} value={ch.name}>
                 {ch.name}
               </option>
             ))}
