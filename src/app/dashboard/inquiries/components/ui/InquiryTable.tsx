@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
-import { MessageCircle, MoreVertical, School, Radio, Users, Search, Calendar } from 'lucide-react'
+import Link from 'next/link'
+import { MessageCircle, MoreVertical, School, Radio, Users, Search, Calendar, BarChart as ChartIcon } from 'lucide-react'
 import { StatusBadge } from './StatusBadge'
 import { Button } from './Button'
 import { Input } from './Input'
@@ -30,6 +31,13 @@ export function InquiryTable({setIsModalOpen, setId}: {setIsModalOpen: Dispatch<
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  
+  // New Filter States
+  const [selectedClass, setSelectedClass] = useState('');
+  const [selectedChannel, setSelectedChannel] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
   const { data: session } = useSession();
   const [isModalOpen2, setIsModalOpen2] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -43,14 +51,38 @@ export function InquiryTable({setIsModalOpen, setId}: {setIsModalOpen: Dispatch<
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
+  // Reset to page 1 when other filters change
+  useEffect(() => {
+    setPage(1);
+  }, [selectedClass, selectedChannel, startDate, endDate]);
+
   const userRole = (session?.user as any)?.role?.toUpperCase();
   const canEditOrDelete = userRole === "ADMIN" || userRole === "EDITOR";
 
-  // 2. Updated Query: Added debouncedSearch to queryKey
+  // Fetch filter options (classes and channels)
+  const { data: filterOptions } = useQuery({
+    queryKey: ["inquiry-filters"],
+    queryFn: async () => {
+      const res = await fetch('/api/inquiries/filters');
+      const result = await res.json();
+      return result.data;
+    }
+  });
+
+  // 2. Updated Query: Added filters to queryKey and URL
 const { data, isLoading, isPlaceholderData } = useQuery({
-  queryKey: ["inquiries", page, debouncedSearch],
+  queryKey: ["inquiries", page, debouncedSearch, selectedClass, selectedChannel, startDate, endDate],
   queryFn: async () => {
-    const res = await fetch(`/api/inquiries?page=${page}&limit=10&search=${debouncedSearch}`);
+    const params = new URLSearchParams({
+        page: page.toString(),
+        limit: '10',
+        search: debouncedSearch,
+        childClass: selectedClass,
+        channelName: selectedChannel,
+        startDate: startDate,
+        endDate: endDate,
+    });
+    const res = await fetch(`/api/inquiries?${params.toString()}`);
     return res.json();
   },
   placeholderData: (previousData) => previousData, // This keeps the old table visible while loading
@@ -111,24 +143,94 @@ const { data, isLoading, isPlaceholderData } = useQuery({
   if (isLoading) return <InquiryTableSkeleton />
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4">
-        <div className="flex-1 min-w-[300px]">
+    <div className="bg-white/70 backdrop-blur-md dark:bg-slate-900/70 rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl overflow-hidden">
+      <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4 p-6 border-b border-slate-100 dark:border-white/5">
+        <div className="flex-1 flex items-center gap-4">
           <Input
             variant="search"
             placeholder="Search by name, phone or email..."
-            icon={<Search size={20} />}
+            icon={<Search size={18} className="text-primary" />}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-50 dark:bg-slate-800"
+            className="w-full max-w-md bg-white dark:bg-slate-800 border-slate-200 dark:border-white/5 rounded-xl h-10 text-xs font-medium"
           />
+          <Link href="/dashboard/analytics/channels">
+            <button className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-indigo-500/20 active:scale-95 group">
+              <ChartIcon size={16} className="group-hover:rotate-12 transition-transform" />
+              Analyse Channels
+            </button>
+          </Link>
         </div>
         
-        <div className="flex items-center gap-3">
-          <Button variant="outline" icon={School} iconPosition="left">Class</Button>
-          <Button variant="outline" icon={Radio} iconPosition="left">Channel</Button>
-          <Button variant="outline" icon={Calendar} iconPosition="left">Oct 20 - Oct 24</Button>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Class Filter */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" icon={School} iconPosition="left">
+                {selectedClass || "Class"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="max-h-[300px] overflow-y-auto">
+              <DropdownMenuItem onClick={() => setSelectedClass('')}>All Classes</DropdownMenuItem>
+              {filterOptions?.classes?.map((cls: string) => (
+                <DropdownMenuItem key={cls} onClick={() => setSelectedClass(cls)}>
+                  {cls}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Channel Filter */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" icon={Radio} iconPosition="left">
+                {selectedChannel || "Channel"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="max-h-[300px] overflow-y-auto">
+              <DropdownMenuItem onClick={() => setSelectedChannel('')}>All Channels</DropdownMenuItem>
+              {filterOptions?.channels?.map((ch: string) => (
+                <DropdownMenuItem key={ch} onClick={() => setSelectedChannel(ch)}>
+                  {ch}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Date Filters */}
+          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
+            <Calendar size={16} className="text-slate-400" />
+            <input 
+              type="date" 
+              value={startDate} 
+              onChange={(e) => setStartDate(e.target.value)}
+              className="bg-transparent border-none text-xs focus:ring-0 dark:text-slate-300"
+            />
+            <span className="text-slate-300">-</span>
+            <input 
+              type="date" 
+              value={endDate} 
+              onChange={(e) => setEndDate(e.target.value)}
+              className="bg-transparent border-none text-xs focus:ring-0 dark:text-slate-300"
+            />
+          </div>
+
+          {(selectedClass || selectedChannel || startDate || endDate || searchTerm) && (
+            <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                    setSelectedClass('');
+                    setSelectedChannel('');
+                    setStartDate('');
+                    setEndDate('');
+                    setSearchTerm('');
+                }}
+                className="text-slate-500 hover:text-red-500"
+            >
+                Clear
+            </Button>
+          )}
         </div>
       </div>
 
@@ -136,48 +238,73 @@ const { data, isLoading, isPlaceholderData } = useQuery({
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
-              <th className="px-6 py-4 border-b border-slate-200 dark:border-slate-800">Parent Name</th>
-              <th className="px-6 py-4 border-b border-slate-200 dark:border-slate-800">WhatsApp</th>
-              <th className="px-6 py-4 border-b border-slate-200 dark:border-slate-800">Child Class</th>
-              <th className="px-6 py-4 border-b border-slate-200 dark:border-slate-800">Source</th>
-              <th className="px-6 py-4 border-b border-slate-200 dark:border-slate-800">Status</th>
-              <th className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 text-right">Actions</th>
+            <tr className="bg-slate-50/50 dark:bg-white/5 text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-[0.1em]">
+              <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5">Parent Name</th>
+              <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5">WhatsApp</th>
+              <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5">Child Class</th>
+              <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5">Source Channel</th>
+              <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5">Status</th>
+              <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+          <tbody className="divide-y divide-slate-100 dark:divide-white/5">
             {inquiries.map((inquiry: any) => (
-              <tr key={inquiry._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+              <tr key={inquiry._id} className="group hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-all duration-300">
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center gap-3">
-                    <div className="size-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                  <div className="flex items-center gap-4">
+                    <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-black text-xs shadow-inner">
                       {getInitials(inquiry.parentName)}
                     </div>
-                    <span onClick={() => handleView(inquiry)} className="text-sm font-semibold cursor-pointer hover:text-primary">
+                    <span 
+                      onClick={() => handleView(inquiry)} 
+                      className="text-sm font-bold text-slate-900 dark:text-white cursor-pointer hover:text-primary transition-colors"
+                    >
                       {inquiry.parentName}
                     </span>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">{inquiry.phone}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">{inquiry.childClass}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">{inquiry.channelName}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-600 dark:text-slate-400">{inquiry.phone || inquiry.whatsapp}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-500 dark:text-slate-400">
+                    <span className="bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded-md text-[10px] uppercase">
+                        {inquiry.childClass}
+                    </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                   <div className="flex items-center gap-2">
+                      <div className="text-slate-400">
+                        {React.createElement(getSourceIcon(inquiry.channelName), { size: 14 })}
+                      </div>
+                      <span className="font-medium text-slate-600 dark:text-slate-400">{inquiry.channelName}</span>
+                   </div>
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <StatusBadge status={inquiry.status}>{inquiry.status}</StatusBadge>
                 </td>
                 <td className="px-6 py-4 text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="md"><MoreVertical size={18} className="cursor-pointer" /></Button>
+                      <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <MoreVertical size={16} className="text-slate-500" />
+                      </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleView(inquiry)} className="cursor-pointer">View</DropdownMenuItem>
+                    <DropdownMenuContent align="end" className="w-48 p-1 rounded-xl shadow-2xl border-white/10">
+                      <DropdownMenuItem onClick={() => handleView(inquiry)} className="rounded-lg font-medium cursor-pointer">
+                        View Details
+                      </DropdownMenuItem>
                       {canEditOrDelete && (
                         <>
-                          <DropdownMenuItem onClick={() => editInquiry.mutate({ id: inquiry._id, data: { status: "contacted" } })} className="cursor-pointer">
-                            Mark Contacted
+                          <DropdownMenuItem 
+                            onClick={() => editInquiry.mutate({ id: inquiry._id, data: { status: "contacted" } })} 
+                            className="rounded-lg font-medium cursor-pointer text-primary"
+                          >
+                            Mark as Contacted
                           </DropdownMenuItem>
-                          <DropdownMenuItem  className="text-red-600 cursor-pointer" onClick={() => { setSelectedId(inquiry._id); setIsModalOpen2(true); }}>
-                            Delete
+                          <div className="h-px bg-slate-100 dark:bg-white/5 my-1" />
+                          <DropdownMenuItem  
+                            className="rounded-lg font-medium text-red-600 cursor-pointer" 
+                            onClick={() => { setSelectedId(inquiry._id); setIsModalOpen2(true); }}
+                          >
+                            Delete Record
                           </DropdownMenuItem>
                         </>
                       )}
@@ -190,21 +317,34 @@ const { data, isLoading, isPlaceholderData } = useQuery({
         </table>
       </div>
 
-      {/* Pagination */}
-      <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-3">
-        <p className="text-xs text-slate-500">
-          {totalCount > 0 ? <>Showing <strong>{from}</strong> to <strong>{to}</strong> of <strong>{totalCount}</strong> inquiries</> : "No inquiries found"}
-        </p>
-        <Pagination>
-          <PaginationContent>
+      {/* Pagination Container */}
+      <div className="p-6 bg-slate-50/30 dark:bg-white/[0.02] border-t border-slate-100 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex flex-col gap-1">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Inventory Status</p>
+            <p className="text-xs text-slate-500 font-medium whitespace-nowrap">
+            {totalCount > 0 
+                ? <>Showing <span className="text-slate-900 dark:text-white font-bold">{from}–{to}</span> of <span className="text-slate-900 dark:text-white font-bold">{totalCount}</span> inquiries</> 
+                : "No matching records found"}
+            </p>
+        </div>
+        <Pagination className="mx-0 w-auto">
+          <PaginationContent className="gap-2">
             <PaginationItem>
-              <PaginationPrevious onClick={() => setPage(p => Math.max(p - 1, 1))} className={page === 1 ? "opacity-50" : "cursor-pointer"} />
+              <PaginationPrevious 
+                onClick={() => setPage(p => Math.max(p - 1, 1))} 
+                className={`h-9 px-4 rounded-xl border-slate-200 dark:border-white/5 transition-all ${page === 1 ? "opacity-30 cursor-not-allowed" : "hover:bg-white dark:hover:bg-white/10 cursor-pointer shadow-sm"}`} 
+              />
             </PaginationItem>
             <PaginationItem>
-              <span className="text-sm px-4">Page {page} of {totalPages}</span>
+              <div className="bg-white dark:bg-white/5 h-9 px-4 flex items-center rounded-xl border border-slate-200 dark:border-white/5 text-xs font-bold shadow-sm">
+                Page {page} of {totalPages}
+              </div>
             </PaginationItem>
             <PaginationItem>
-              <PaginationNext onClick={() => setPage(p => Math.min(p + 1, totalPages))} className={page === totalPages ? "opacity-50" : "cursor-pointer"} />
+              <PaginationNext 
+                onClick={() => setPage(p => Math.min(p + 1, totalPages))} 
+                className={`h-9 px-4 rounded-xl border-slate-200 dark:border-white/5 transition-all ${page === totalPages ? "opacity-30 cursor-not-allowed" : "hover:bg-white dark:hover:bg-white/10 cursor-pointer shadow-sm"}`} 
+              />
             </PaginationItem>
           </PaginationContent>
         </Pagination>

@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // app/api/inquiries/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import Inquiry from '@/models/Inquiry';
-import { Channel } from '@/models/Channel';
+import { NextRequest, NextResponse } from "next/server";
+import dbConnect from "@/lib/mongodb";
+import Inquiry from "@/models/Inquiry";
+import { Channel } from "@/models/Channel";
 
 // Define headers clearly
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*', // Change this to your specific domain in production
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  "Access-Control-Allow-Origin": "*", // Change this to your specific domain in production
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
 // Handle Preflight (OPTIONS)
@@ -20,94 +20,101 @@ export async function OPTIONS() {
 // app/api/inquiries/route.ts
 export async function POST(req: NextRequest) {
   try {
-    await dbConnect()
-    const body = await req.json()
+    await dbConnect();
+    const body = await req.json();
 
-    const { parentName, childClass, whatsapp, channelId, channelName } = body
-    console.log( parentName, childClass, whatsapp, channelId, channelName)
+    const { parentName, childClass, whatsapp, channelId, channelName } = body;
+    // console.log( parentName, childClass, whatsapp, channelId, channelName)
 
     if (!parentName || !whatsapp || !channelId || !channelName) {
-  return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-}
-if (channelId && !channelName) {
-  const channel = await Channel.findById(channelId);
-  if (channel) body.channelName = channel.name;
-}
-  // 1. Strict Validation
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 },
+      );
+    }
+    if (channelId && !channelName) {
+      const channel = await Channel.findById(channelId);
+      if (channel) body.channelName = channel.name;
+    }
+    // 1. Strict Validation
     if (!parentName || parentName.length > 50) {
-       return NextResponse.json({ error: 'Invalid Name' }, { status: 400, headers: corsHeaders });
+      return NextResponse.json(
+        { error: "Invalid Name" },
+        { status: 400, headers: corsHeaders },
+      );
     }
 
     // 1. Basic validation
     if (!parentName || !whatsapp || !channelId || !channelName) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400,headers: corsHeaders },
-         
-      )
+        { error: "Missing required fields" },
+        { status: 400, headers: corsHeaders },
+      );
     }
-// app/api/inquiries/route.ts
+    // app/api/inquiries/route.ts
 
-// ... existing code ...
+    // ... existing code ...
 
-const normalizedWhatsapp = whatsapp.trim();
-const normalizedName = parentName.trim().toLowerCase();
+    const normalizedWhatsapp = whatsapp.trim();
+    const normalizedName = parentName.trim().toLowerCase();
 
-// CHECK 1: WhatsApp Uniqueness
-const existingPhone = await Inquiry.findOne({ whatsapp: normalizedWhatsapp });
-if (existingPhone) {
-  return NextResponse.json(
-    { error: 'This WhatsApp number is already registered' },
-    { status: 409, headers: corsHeaders }
-  );
-}
+    // CHECK 1: WhatsApp Uniqueness
+    const existingPhone = await Inquiry.findOne({
+      whatsapp: normalizedWhatsapp,
+    });
+    if (existingPhone) {
+      return NextResponse.json(
+        { error: "This WhatsApp number is already registered" },
+        { status: 409, headers: corsHeaders },
+      );
+    }
 
-// CHECK 2: Name Uniqueness (Add this part)
-const existingName = await Inquiry.findOne({ parentNameNormalized: normalizedName });
-if (existingName) {
-  return NextResponse.json(
-    { error: 'A parent with this name is already registered' },
-    { status: 409, headers: corsHeaders }
-  );
-}
+    // CHECK 2: Name Uniqueness (Add this part)
+    const existingName = await Inquiry.findOne({
+      parentNameNormalized: normalizedName,
+    });
+    if (existingName) {
+      return NextResponse.json(
+        { error: "A parent with this name is already registered" },
+        { status: 409, headers: corsHeaders },
+      );
+    }
 
-// ... continue to create inquiry ...
+    // ... continue to create inquiry ...
 
     // 3. Create the inquiry
-   const inquiry = await Inquiry.create({
-  parentName: parentName.trim(),
-  parentNameNormalized: normalizedName,
-  childClass,
-  whatsapp: whatsapp.trim(),
-  channelId,
-  channelName,
-});
-
+    const inquiry = await Inquiry.create({
+      parentName: parentName.trim(),
+      parentNameNormalized: normalizedName,
+      childClass,
+      whatsapp: whatsapp.trim(),
+      channelId,
+      channelName,
+    });
 
     // 4. Increment channel leads
     await Channel.findByIdAndUpdate(channelId, {
       $inc: { leads: 1 },
-    })
+    });
 
     return NextResponse.json(
       { success: true, inquiry },
-      { status: 201,headers: corsHeaders },
-      
-    )
+      { status: 201, headers: corsHeaders },
+    );
   } catch (error: any) {
-  if (error.code === 11000) {
+    if (error.code === 11000) {
+      return NextResponse.json(
+        { error: "This parent name is already registered" },
+        { status: 409, headers: corsHeaders },
+      );
+    }
+
+    console.error(error);
     return NextResponse.json(
-      { error: 'This parent name is already registered' },
-      { status: 409, headers: corsHeaders }
+      { error: "Server error" },
+      { status: 500, headers: corsHeaders },
     );
   }
-
-  console.error(error);
-  return NextResponse.json(
-    { error: 'Server error' },
-    { status: 500, headers: corsHeaders }
-  );
-}
 }
 
 export async function GET(req: NextRequest) {
@@ -119,25 +126,48 @@ export async function GET(req: NextRequest) {
     const page = Math.max(parseInt(searchParams.get("page") || "1", 10), 1);
     const limit = Math.max(parseInt(searchParams.get("limit") || "10", 10), 1);
     const search = searchParams.get("search") || "";
+    const childClass = searchParams.get("childClass") || "";
+    const channelName = searchParams.get("channelName") || "";
+    const startDate = searchParams.get("startDate") || "";
+    const endDate = searchParams.get("endDate") || "";
 
     const skip = (page - 1) * limit;
 
     // 1. Build the Search Filter
     let query: any = {};
-    
+
+    // Base filters
     if (search) {
-      query = {
-        $or: [
-          { parentName: { $regex: search, $options: "i" } },
-          { phone: { $regex: search, $options: "i" } },
-          { email: { $regex: search, $options: "i" } },
-          { channelName: { $regex: search, $options: "i" } },
-        ],
-      };
+      query.$or = [
+        { parentName: { $regex: search, $options: "i" } },
+        { phone: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { channelName: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    if (childClass) {
+      query.childClass = childClass;
+    }
+
+    if (channelName) {
+      query.channelName = channelName;
+    }
+
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) {
+        query.createdAt.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        // Set end date to end of day
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.createdAt.$lte = end;
+      }
     }
 
     // 2. Execute Query and Count in parallel
-    // We pass the 'query' to both .find() and .countDocuments()
     const [inquiries, total] = await Promise.all([
       Inquiry.find(query)
         .sort({ createdAt: -1 })
@@ -158,13 +188,13 @@ export async function GET(req: NextRequest) {
           totalPages: Math.ceil(total / limit),
         },
       },
-      { headers: corsHeaders }
+      { headers: corsHeaders },
     );
   } catch (error) {
     console.error("GET Inquiries Error:", error);
     return NextResponse.json(
       { success: false, error: "Server error" },
-      { status: 500, headers: corsHeaders }
+      { status: 500, headers: corsHeaders },
     );
   }
 }

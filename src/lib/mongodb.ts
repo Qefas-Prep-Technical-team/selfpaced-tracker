@@ -1,10 +1,14 @@
 // lib/mongodb.ts
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
+import dns from "node:dns/promises";
+
+// Force the app to use Google/Cloudflare DNS
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
 const MONGODB_URI = process.env.MONGODB_URI as string;
 
 if (!MONGODB_URI) {
-  throw new Error('Please define MONGODB_URI in .env.local');
+  throw new Error("Please define MONGODB_URI in .env.local");
 }
 
 interface MongooseCache {

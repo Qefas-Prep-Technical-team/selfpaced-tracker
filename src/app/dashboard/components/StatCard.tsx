@@ -18,7 +18,7 @@ export default function StatCard({
   value,
   change,
   changeType,
-  icon: Icon, // Rename to Uppercase Icon here
+  icon: Icon,
   label = "vs last month",
   progress,
   progressColor = "bg-primary"
@@ -26,41 +26,44 @@ export default function StatCard({
   const isPositive = changeType === 'positive';
 
   return (
-    <div className="bg-white dark:bg-slate-900 flex flex-col gap-2 rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-      <div className="flex justify-between items-start">
-        <p className="text-[#4c739a] text-sm font-medium">{title}</p>
+    <div className="group relative overflow-hidden bg-white/70 backdrop-blur-md dark:bg-slate-900/70 flex flex-col gap-3 rounded-2xl p-6 border border-slate-200 dark:border-white/10 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl">
+      {/* Decorative gradient blur */}
+      <div className="absolute -right-4 -top-4 size-24 bg-primary/10 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
 
-        {/* Render the component reference using brackets */}
+      <div className="flex justify-between items-start relative z-10">
+        <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">{title}</p>
+        
         {Icon && (
-          <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
-            <Icon size={18} className="text-primary" />
+          <div className="p-2.5 bg-primary/10 dark:bg-primary/20 rounded-xl text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+            <Icon size={20} strokeWidth={2.5} />
           </div>
         )}
       </div>
 
-      <p className="text-2xl font-bold">{value}</p>
+      <div className="relative z-10">
+        <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{value}</p>
+        
+        <div className="flex items-center gap-1.5 mt-2">
+            <div className={`flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                isPositive 
+                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' 
+                : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
+            }`}>
+                {isPositive ? '↑' : '↓'} {change}
+            </div>
+            <span className="text-slate-400 text-[10px] font-medium tracking-tight">{label}</span>
+        </div>
+      </div>
 
       {/* Render Progress Bar if progress exists */}
       {progress !== undefined && (
-        <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+        <div className="w-full bg-slate-100 dark:bg-white/5 h-2 rounded-full mt-1 overflow-hidden relative z-10">
           <div
-            className={`h-full transition-all duration-500 ${progressColor}`}
+            className={`h-full transition-all duration-1000 ${progressColor} shadow-[0_0_12px_rgba(0,0,0,0.1)]`}
             style={{ width: `${progress}%` }}
           />
         </div>
       )}
-
-      <div className="flex items-center gap-1 mt-1">
-        <span className={`material-symbols-outlined text-sm ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
-          {isPositive ? 'trending_up' : 'trending_down'}
-        </span>
-
-        <p className={`text-xs font-semibold ${isPositive ? 'text-green-600' : 'text-red-500'}`}>
-          {change}
-        </p>
-
-        <span className="text-[#4c739a] text-xs">{label}</span>
-      </div>
     </div>
   )
 }

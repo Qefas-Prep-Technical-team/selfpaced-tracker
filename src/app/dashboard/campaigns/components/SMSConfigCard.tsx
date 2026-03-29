@@ -44,81 +44,72 @@ export const SMSConfigCard: React.FC<SMSConfigCardProps> = ({
     complianceUrl = '#',
 }) => {
     return (
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <Settings className="w-5 h-5 text-primary" />
-                SMS Configuration
+        <div className="bg-white/70 backdrop-blur-md dark:bg-slate-900/70 p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-xl overflow-hidden relative group">
+            <div className="absolute -right-4 -top-4 size-24 bg-primary/5 blur-3xl rounded-full group-hover:bg-primary/10 transition-colors" />
+            
+            <h3 className="text-xl font-black mb-8 flex items-center gap-3 tracking-tight">
+                <div className="p-2 bg-primary/10 rounded-xl text-primary">
+                    <Settings className="w-5 h-5" />
+                </div>
+                Gateway Logic
             </h3>
 
-            <div className="space-y-5">
+            <div className="space-y-8">
                 {/* Sender ID Section */}
-                <div>
-                    <label className="block text-xs font-bold text-[#4c669a] uppercase tracking-wider mb-2">
-                        Approved Sender ID
+                <div className="relative">
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
+                        Validated Identity
                     </label>
-                    <div className="flex items-center justify-between p-3 bg-background-light dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700">
-                        <span className="font-mono font-bold text-lg">{senderId}</span>
-                        <span
-                            className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black uppercase ${senderStatus === 'approved'
-                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                    : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                                }`}
-                        >
+                    <div className="flex items-center justify-between p-5 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 shadow-inner">
+                        <span className="font-mono font-black text-xl tracking-tighter text-slate-800 dark:text-white">{senderId}</span>
+                        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm ${
+                            senderStatus === 'approved'
+                                ? 'bg-emerald-500 text-white'
+                                : 'bg-amber-500 text-white'
+                        }`}>
                             <CheckCircle className="w-3 h-3" />
-                            {senderStatus === 'approved' ? 'Approved' : 'Pending'}
-                        </span>
+                            {senderStatus === 'approved' ? 'Verified' : 'Pending'}
+                        </div>
                     </div>
-                    <p className="mt-2 text-[11px] text-[#4c669a]">
-                        To request a new ID, please visit the{' '}
-                        <a href={complianceUrl} className="text-primary hover:underline">
-                            Compliance Center
-                        </a>
-                        .
-                    </p>
                 </div>
 
                 {/* Route Selector */}
                 <div>
-                    <label className="block text-xs font-bold text-[#4c669a] uppercase tracking-wider mb-2">
-                        Delivery Route
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
+                        Transmission Protocol
                     </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 gap-4">
                         {deliveryRoutes.map((route) => (
                             <button
                                 key={route.id}
                                 onClick={() => onRouteSelect?.(route.id)}
-                                className={`flex flex-col p-3 border-2 rounded-xl hover:border-primary/50 transition-all text-left relative overflow-hidden ${selectedRoute === route.id
-                                        ? 'border-primary bg-primary/5'
-                                        : 'border-slate-100 dark:border-slate-800'
-                                    }`}
+                                className={`flex items-center justify-between p-5 border-2 rounded-2xl transition-all relative overflow-hidden group/btn ${
+                                    selectedRoute === route.id
+                                        ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
+                                        : 'border-slate-100 dark:border-white/5 bg-white/50 dark:bg-white/5 hover:border-slate-200 dark:hover:border-white/20'
+                                }`}
                             >
+                                <div className="flex flex-col text-left">
+                                    <span className={`text-[10px] font-black uppercase tracking-widest mb-1 ${
+                                        selectedRoute === route.id ? 'text-primary' : 'text-slate-400'
+                                    }`}>
+                                        {route.name}
+                                    </span>
+                                    <span className="text-lg font-black text-slate-800 dark:text-white leading-none">
+                                        {route.price}
+                                        <span className="text-[10px] font-bold text-slate-400 ml-1">
+                                            {route.priceUnit}
+                                        </span>
+                                    </span>
+                                </div>
+
                                 {route.recommended && (
-                                    <div className="absolute -right-1 -top-1 bg-primary text-white text-[8px] font-black px-2 py-1 rotate-12 uppercase">
-                                        Recommended
+                                    <div className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${
+                                        selectedRoute === route.id ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-500'
+                                    }`}>
+                                        Priority
                                     </div>
                                 )}
-                                <span
-                                    className={`text-xs font-bold ${selectedRoute === route.id
-                                            ? 'text-primary'
-                                            : 'text-slate-500 dark:text-slate-400'
-                                        }`}
-                                >
-                                    {route.name}
-                                </span>
-                                <span className="text-lg font-black mt-1">
-                                    {route.price}
-                                    <span className="text-[10px] font-normal text-slate-400">
-                                        {route.priceUnit}
-                                    </span>
-                                </span>
-                                <span
-                                    className={`text-[10px] mt-1 ${selectedRoute === route.id
-                                            ? 'text-primary/80'
-                                            : 'text-slate-400'
-                                        }`}
-                                >
-                                    {route.description}
-                                </span>
                             </button>
                         ))}
                     </div>

@@ -16,18 +16,21 @@ export function TopLocationsChart({ filter }: FilterProps) {
   });
 
   if (isLoading) return (
-    <div className="h-[400px] flex items-center justify-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
+    <div className="h-[400px] flex items-center justify-center bg-white/50 backdrop-blur-md dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl">
       <Loader2 className="animate-spin text-primary" />
     </div>
   );
 
   return (
-    <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-6 shadow-sm h-[400px] flex flex-col">
+    <div className="rounded-2xl bg-white/70 backdrop-blur-md dark:bg-slate-900/70 border border-slate-200 dark:border-white/10 p-6 shadow-xl h-[400px] flex flex-col transition-all hover:shadow-2xl">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-slate-900 dark:text-white font-bold text-lg flex items-center gap-2">
-          <MapPin size={20} className="text-primary" />
-          Top Locations
-        </h3>
+        <div>
+          <h3 className="text-slate-900 dark:text-white font-black text-lg tracking-tight flex items-center gap-2">
+            <MapPin size={18} className="text-primary" />
+            Geographic Reach
+          </h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Top engagement by location</p>
+        </div>
       </div>
 
       <div className="flex-1 w-full">
@@ -43,18 +46,26 @@ export function TopLocationsChart({ filter }: FilterProps) {
               type="category" 
               axisLine={false} 
               tickLine={false}
-              tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }}
+              tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700, textAnchor: 'end' }}
               width={80}
             />
             <Tooltip
               cursor={{ fill: 'transparent' }}
-              contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+              contentStyle={{ 
+                backgroundColor: 'rgba(30, 41, 59, 0.9)', 
+                backdropFilter: 'blur(8px)',
+                border: 'none', 
+                borderRadius: '12px',
+                color: '#fff',
+                fontSize: '12px'
+              }}
             />
-            <Bar dataKey="clicks" radius={[0, 4, 4, 0]} barSize={20}>
+            <Bar dataKey="clicks" radius={[0, 8, 8, 0]} barSize={20} animationDuration={1500}>
               {locationData.map((entry: any, index: number) => (
                 <Cell 
                   key={`cell-${index}`} 
-                  fill={index === 0 ? '#734c9a' : '#734c9a80'} 
+                  fill={index === 0 ? '#6366f1' : '#6366f130'} 
+                  className={index === 0 ? '' : 'dark:fill-slate-800'}
                 />
               ))}
             </Bar>
@@ -62,9 +73,12 @@ export function TopLocationsChart({ filter }: FilterProps) {
         </ResponsiveContainer>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-        <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">
-          Based on {locationData.reduce((acc: number, curr: any) => acc + curr.clicks, 0).toLocaleString()} total clicks
+      <div className="mt-6 pt-6 border-t border-slate-100 dark:border-white/5">
+        <p className="text-[10px] text-slate-400 uppercase font-black tracking-[0.2em]">
+          Global Presence Analysis
+        </p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium italic">
+            Visualizing {locationData.reduce((acc: number, curr: any) => acc + curr.clicks, 0).toLocaleString()} interactions
         </p>
       </div>
     </div>

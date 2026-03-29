@@ -17,19 +17,19 @@ interface ToggleGroupProps {
 
 const ToggleGroup: FC<ToggleGroupProps> = ({ options, value, onChange }) => {
   return (
-    <div className="bg-[#e7edf3] dark:bg-slate-800 p-1 rounded-lg flex items-center">
+    <div className="bg-slate-100 dark:bg-slate-900 shadow-inner p-1 rounded-xl flex items-center border border-slate-200 dark:border-slate-800">
       {options.map((option) => (
         <button
           key={option.value}
           onClick={() => onChange(option.value)}
           className={cn(
-            'flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-bold transition-all',
+            'flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200',
             value === option.value
-              ? 'bg-white dark:bg-slate-700 text-ai-purple shadow-sm'
-              : 'text-[#4c739a] dark:text-slate-400 hover:text-primary'
+              ? 'bg-white dark:bg-slate-800 text-primary shadow-md ring-1 ring-slate-200 dark:ring-slate-700'
+              : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
           )}
         >
-          <span className="material-symbols-outlined text-lg">{option.icon}</span>
+          <span className="material-symbols-outlined text-[18px]">{option.icon}</span>
           {option.label}
         </button>
       ))}

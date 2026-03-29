@@ -3,7 +3,8 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { Calendar, Filter, Download, Loader2 } from 'lucide-react'
+import { Calendar, Filter, Download, Loader2, BarChart } from 'lucide-react'
+import Link from 'next/link'
 import { Button } from '../../channel/components/ui/Button'
 
 interface DashboardControlsProps {
@@ -16,55 +17,56 @@ interface DashboardControlsProps {
 
 export function DashboardControls({ timeRange, setTimeRange, channel, setChannel, onExport }: DashboardControlsProps) {
   
-  // src/app/dashboard/analytics/components/DashboardControls.tsx
-
-const { data: channels = [], isLoading: isLoadingChannels } = useQuery({
-  queryKey: ['channel-list'],
-  queryFn: async () => {
-    const res = await fetch('/api/channels/list');
-    const json = await res.json();
-    
-    // Return the 'data' property because that's where the array is!
-    return json.data || []; 
-  }
-});
+  const { data: channels = [], isLoading: isLoadingChannels } = useQuery({
+    queryKey: ['channel-list'],
+    queryFn: async () => {
+      const res = await fetch('/api/channels/list');
+      const json = await res.json();
+      return json.data || []; 
+    }
+  });
 
   return (
-    <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-text-primary dark:text-white text-3xl font-black leading-tight tracking-[-0.033em]">
-          Global Analytics Overview
+    <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 mb-10 overflow-visible">
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2 mb-1">
+            <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Live Analytics</span>
+        </div>
+        <h1 className="text-slate-900 dark:text-white text-4xl font-black leading-none tracking-tight">
+          Performance <span className="text-primary italic">Insights</span>
         </h1>
-        <p className="text-text-secondary dark:text-slate-400 text-base font-normal">
-          Real-time performance across {channels.length} active channels.
+        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium max-w-md">
+          Monitoring <span className="text-slate-900 dark:text-slate-200 font-bold">{channels.length} channels</span> with real-time data aggregation and trend analysis.
         </p>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap items-center gap-3 bg-white/50 backdrop-blur-sm dark:bg-white/5 p-2 rounded-2xl border border-slate-200/50 dark:border-white/5 shadow-sm">
         {/* Time Range Selector */}
-        <div className="relative">
-          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+        <div className="group relative">
+          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors" size={14} />
           <select 
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value)}
-            className="pl-10 pr-8 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer"
+            className="pl-9 pr-8 h-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer hover:border-primary/50 transition-all outline-none"
           >
             <option value="7d">Last 7 Days</option>
             <option value="30d">Last 30 Days</option>
             <option value="90d">Last 90 Days</option>
+            <option value="6m">Last 6 Months</option>
           </select>
         </div>
 
         {/* Dynamic Channel Filter */}
-        <div className="relative">
-          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+        <div className="group relative">
+          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors" size={14} />
           <select 
             value={channel}
             onChange={(e) => setChannel(e.target.value)}
-            className="pl-10 pr-8 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer disabled:opacity-50"
+            className="pl-9 pr-8 h-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer disabled:opacity-50 hover:border-primary/50 transition-all outline-none"
             disabled={isLoadingChannels}
           >
-            <option value="all">All Channels</option>
+            <option value="all">Global (All Channels)</option>
             {channels?.map((ch: any) => (
               <option key={ch._id} value={ch._id}>
                 {ch.name}
@@ -72,11 +74,23 @@ const { data: channels = [], isLoading: isLoadingChannels } = useQuery({
             ))}
           </select>
           {isLoadingChannels && (
-            <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin text-slate-400" size={12} />
+            <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin text-primary" size={12} />
           )}
         </div>
 
-        <Button variant="primary" icon={Download} onClick={onExport}>
+        <Link href="/dashboard/analytics/channels">
+          <button className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-indigo-500/20 active:scale-95 group">
+            <BarChart size={16} className="group-hover:rotate-12 transition-transform" />
+            Analyse Channels
+          </button>
+        </Link>
+
+        <Button 
+            variant="primary" 
+            icon={Download} 
+            onClick={onExport}
+            className="rounded-xl h-10 px-6 shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-95 transition-all text-xs font-black uppercase tracking-wider"
+        >
           Export
         </Button>
       </div>

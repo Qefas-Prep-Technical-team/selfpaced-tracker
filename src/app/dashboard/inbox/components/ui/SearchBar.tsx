@@ -8,20 +8,18 @@ interface SearchBarProps {
 
 const SearchBar: FC<SearchBarProps> = ({ placeholder = 'Search...', value, onChange }) => {
   return (
-    <label className="flex flex-col w-full">
-      <div className="flex w-full flex-1 items-stretch rounded-lg h-9 border border-slate-100 dark:border-slate-800">
-        <div className="text-[#4c739a] flex bg-[#f6f7f8] dark:bg-slate-800 items-center justify-center pl-3 rounded-l-lg">
-          <span className="material-symbols-outlined text-lg">search</span>
-        </div>
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange?.(e.target.value)}
-          placeholder={placeholder}
-          className="form-input flex w-full min-w-0 flex-1 border-none bg-[#f6f7f8] dark:bg-slate-800 text-[#0d141b] dark:text-white focus:outline-0 focus:ring-0 h-full placeholder:text-[#4c739a] px-2 rounded-r-lg text-sm"
-        />
+    <div className="relative w-full group">
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors group-focus-within:text-primary text-slate-400">
+        <span className="material-symbols-outlined text-lg">search</span>
       </div>
-    </label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange?.(e.target.value)}
+        placeholder={placeholder}
+        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary dark:focus:border-primary/50 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-white"
+      />
+    </div>
   )
 }
 

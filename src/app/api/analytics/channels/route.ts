@@ -7,26 +7,40 @@ export async function GET(req: NextRequest) {
     await dbConnect();
     const { searchParams } = new URL(req.url);
     const range = searchParams.get("range") || "30d";
+    const fromStr = searchParams.get("from");
+    const toStr = searchParams.get("to");
+    const studentClass = searchParams.get("class");
+    const status = searchParams.get("status");
 
-    const now = new Date();
-    const days = parseInt(range) || 30;
-    const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    let startDate: Date;
+    let endDate = new Date();
+
+    if (fromStr) {
+      startDate = new Date(fromStr);
+      if (toStr) endDate = new Date(toStr);
+    } else {
+      const days = parseInt(range) || 30;
+      startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
+    }
+
+    const matchFilter: any = { createdAt: { $gte: startDate, $lte: endDate } };
+    if (studentClass && studentClass !== 'all') matchFilter.studentClass = studentClass;
+    if (status && status !== 'all') matchFilter.status = status;
 
     // Aggregate Inquiries by Channel
     const performance = await Inquiry.aggregate([
-      { $match: { createdAt: { $gte: startDate } } },
+      { $match: matchFilter },
       {
         $group: {
           _id: "$channelName",
           leads: { $sum: 1 },
-          // Mocking messages as "follow-ups" or "contacted" status for this chart
           messages: { 
             $sum: { $cond: [{ $ne: ["$status", "new"] }, 1, 0] } 
           }
         }
       },
       { $project: { name: "$_id", leads: 1, messages: 1, _id: 0 } },
-      { $limit: 5 } // Top 5 channels
+      { $sort: { leads: -1 } }
     ]);
 
     return NextResponse.json(performance);

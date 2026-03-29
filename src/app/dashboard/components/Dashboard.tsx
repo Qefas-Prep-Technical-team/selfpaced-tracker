@@ -151,8 +151,7 @@ export default function Dashboard() {
             <StatCard
               key={stat.title}
               {...stat}
-              // This line solves the error
-              trend={stat.trend as "up" | "down"}
+              changeType={stat.trend === 'up' ? 'positive' : 'negative'}
             />
           ))}
         </DashboardStateHandler>

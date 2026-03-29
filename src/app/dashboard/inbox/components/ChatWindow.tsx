@@ -83,24 +83,29 @@ const ChatWindow: FC<ChatWindowProps> = ({ contactId }) => {
         });
     };
 
-    if (isLoading) return <div className="flex-1 flex items-center justify-center">Loading...</div>;
+    if (isLoading) return (
+        <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 dark:bg-background-dark/50 gap-4">
+            <div className="size-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+            <p className="text-sm font-medium text-slate-500 animate-pulse">Loading conversation...</p>
+        </div>
+    );
 
     return (
-        /* REMOVED h-screen. 
-           ADDED flex-1 and min-h-0 so it occupies the space 
-           assigned by the parent ChatLayout.
-        */
-        <section className="flex-1 flex flex-col min-h-0 h-full overflow-hidden">
+        <section className="flex-1 flex flex-col min-h-0 h-full overflow-hidden bg-slate-50/30 dark:bg-background-dark/30 relative">
+            {/* Subtle background pattern for premium feel */}
+            <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
+
             <ChatHeader 
-                name={conversation?.name || "WhatsApp Chat"} 
+                name={conversation?.name || "Support Chat"} 
                 status={conversation?.status} 
+                avatar={conversation?.avatar}
                 conversationId={contactId} 
             />
 
             {/* The scrollable area */}
             <div 
                 ref={scrollRef} 
-                className="flex-1 overflow-y-auto p-4 md:p-6 flex flex-col gap-4 custom-scrollbar"
+                className="flex-1 overflow-y-auto p-6 md:p-8 flex flex-col gap-6 custom-scrollbar relative z-0"
             >
                 {conversation?.messages?.map((msg: any, idx: number) => (
                     <MessageBubble 
@@ -109,14 +114,20 @@ const ChatWindow: FC<ChatWindowProps> = ({ contactId }) => {
                             id: idx.toString(),
                             sender: msg.sender === 'user' ? 'user' : (msg.sender === 'bot' ? 'ai' : 'human'),
                             content: msg.body,
-                            timestamp: new Date(msg.timestamp)
+                            timestamp: new Date(msg.timestamp),
+                            avatar: msg.sender === 'user' ? undefined : (msg.sender === 'bot' ? undefined : conversation?.avatar)
                         }} 
                     />
                 ))}
+                
+                {/* Visual spacer at the bottom */}
+                <div className="h-4 shrink-0" />
             </div>
 
             {/* Input sits firmly at the bottom of the section */}
-            <MessageInput onSendMessage={handleSendMessage} />
+            <div className="relative z-10">
+                <MessageInput onSendMessage={handleSendMessage} />
+            </div>
         </section>
     )
 }
