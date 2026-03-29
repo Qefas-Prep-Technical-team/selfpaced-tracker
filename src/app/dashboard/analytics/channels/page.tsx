@@ -105,7 +105,7 @@ export default function ChannelAnalyticsPage() {
         trendData.flatMap((item: any) => 
             Object.keys(item).filter(k => k !== 'name')
         )
-    ));
+    )) as string[];
 
     const colors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4']
 
