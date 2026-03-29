@@ -137,8 +137,8 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="p-8 space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <DashboardStateHandler
           data={data}
           isLoading={isLoading}

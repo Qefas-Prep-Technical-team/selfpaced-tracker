@@ -59,7 +59,7 @@ const ConversationList: FC<ConversationListProps> = ({
     console.log(conversations)
 
     return (
-        <aside className="w-85 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col shrink-0 overflow-hidden">
+        <aside className="w-full md:w-85 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col shrink-0 overflow-hidden">
             <div className="p-6 flex flex-col gap-4 border-b border-slate-100 dark:border-slate-800/50">
                 <div className="flex items-center justify-between">
                     <h1 className="text-slate-900 dark:text-white text-xl font-bold tracking-tight">Messages</h1>

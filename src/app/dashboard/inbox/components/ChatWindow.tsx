@@ -8,9 +8,13 @@ import ChatHeader from './ChatHeader'
 import MessageBubble from './MessageBubble'
 import MessageInput from './MessageInput'
 
-interface ChatWindowProps { contactId: string }
+interface ChatWindowProps { 
+    contactId: string;
+    onBack?: () => void;
+    onShowDetails?: () => void;
+}
 
-const ChatWindow: FC<ChatWindowProps> = ({ contactId }) => {
+const ChatWindow: FC<ChatWindowProps> = ({ contactId, onBack, onShowDetails }) => {
     const queryClient = useQueryClient();
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -100,6 +104,8 @@ const ChatWindow: FC<ChatWindowProps> = ({ contactId }) => {
                 status={conversation?.status} 
                 avatar={conversation?.avatar}
                 conversationId={contactId} 
+                onBack={onBack}
+                onShowDetails={onShowDetails}
             />
 
             {/* The scrollable area */}

@@ -26,22 +26,22 @@ export default function StatCard({
   const isPositive = changeType === 'positive';
 
   return (
-    <div className="group relative overflow-hidden bg-white/70 backdrop-blur-md dark:bg-slate-900/70 flex flex-col gap-3 rounded-2xl p-6 border border-slate-200 dark:border-white/10 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl">
+    <div className="group relative overflow-hidden bg-white/70 backdrop-blur-md dark:bg-slate-900/70 flex flex-col gap-3 rounded-2xl p-4 sm:p-5 md:p-6 border border-slate-200 dark:border-white/10 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl">
       {/* Decorative gradient blur */}
       <div className="absolute -right-4 -top-4 size-24 bg-primary/10 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
 
       <div className="flex justify-between items-start relative z-10">
-        <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">{title}</p>
+        <p className="text-slate-500 dark:text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider">{title}</p>
         
         {Icon && (
-          <div className="p-2.5 bg-primary/10 dark:bg-primary/20 rounded-xl text-primary transition-colors group-hover:bg-primary group-hover:text-white">
-            <Icon size={20} strokeWidth={2.5} />
+          <div className="p-2 sm:p-2.5 bg-primary/10 dark:bg-primary/20 rounded-xl text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+            <Icon className="size-4 sm:size-5" strokeWidth={2.5} />
           </div>
         )}
       </div>
 
       <div className="relative z-10">
-        <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{value}</p>
+        <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">{value}</p>
         
         <div className="flex items-center gap-1.5 mt-2">
             <div className={`flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${

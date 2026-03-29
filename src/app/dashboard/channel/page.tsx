@@ -28,14 +28,14 @@ export default function DashboardPage() {
   return (
     <>
       <div className="flex h-screen overflow-hidden">
-        <main className="flex-1 bg-background-light dark:bg-background-dark flex flex-col">
-          <div className="max-w-300 w-full mx-auto px-6 pt-8">
-            <div className="flex flex-wrap justify-between items-end gap-4 pb-6">
-              <div>
-                <h2 className="text-slate-900 dark:text-white text-3xl font-black tracking-tight">
+        <main className="flex-1 bg-background-light dark:bg-background-dark flex flex-col overflow-y-auto">
+          <div className="max-w-[1440px] w-full mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 pb-8">
+              <div className="flex flex-col gap-1">
+                <h2 className="text-slate-900 dark:text-white text-2xl sm:text-3xl font-black tracking-tight">
                   Channels Management
                 </h2>
-                <p className="text-slate-500 dark:text-[#92adc9] mt-1">
+                <p className="text-slate-500 dark:text-[#92adc9] text-xs sm:text-sm font-medium">
                   Overview and performance of your acquisition sources
                 </p>
               </div>
@@ -43,8 +43,8 @@ export default function DashboardPage() {
                 <Button 
                   icon={Plus} 
                   iconPosition="left"
-                  onClick={handleAddNew} // Use the helper
-                  className="shadow-lg shadow-primary/20 cursor-pointer"
+                  onClick={handleAddNew}
+                  className="w-full sm:w-auto shadow-lg shadow-primary/20 cursor-pointer py-3 sm:py-2.5 text-xs font-black uppercase tracking-widest"
                 >
                   Add New Channel
                 </Button>

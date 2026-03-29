@@ -143,76 +143,81 @@ const { data, isLoading, isPlaceholderData } = useQuery({
   if (isLoading) return <InquiryTableSkeleton />
 
   return (
-    <div className="bg-white/70 backdrop-blur-md dark:bg-slate-900/70 rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl overflow-hidden">
-      <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4 p-6 border-b border-slate-100 dark:border-white/5">
-        <div className="flex-1 flex items-center gap-4">
+    <div className="bg-white/70 backdrop-blur-md dark:bg-slate-900/70 rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl overflow-hidden">      <div className="flex flex-col xl:flex-row items-stretch justify-between gap-6 p-6 border-b border-slate-100 dark:border-white/5">
+        <div className="flex flex-col sm:flex-row flex-1 items-stretch sm:items-center gap-4">
           <Input
             variant="search"
-            placeholder="Search by name, phone or email..."
+            placeholder="Search leads..."
             icon={<Search size={18} className="text-primary" />}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full max-w-md bg-white dark:bg-slate-800 border-slate-200 dark:border-white/5 rounded-xl h-10 text-xs font-medium"
+            className="w-full sm:max-w-md bg-white dark:bg-slate-800 border-slate-200 dark:border-white/5 rounded-xl h-10 text-xs font-medium"
           />
-          <Link href="/dashboard/analytics/channels">
-            <button className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-indigo-500/20 active:scale-95 group">
+          <Link href="/dashboard/analytics/channels" className="w-full sm:w-auto">
+            <button className="w-full sm:w-auto flex items-center justify-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-indigo-500/20 active:scale-95 group">
               <ChartIcon size={16} className="group-hover:rotate-12 transition-transform" />
               Analyse Channels
             </button>
           </Link>
         </div>
         
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {/* Class Filter */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" icon={School} iconPosition="left">
-                {selectedClass || "Class"}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="max-h-[300px] overflow-y-auto">
-              <DropdownMenuItem onClick={() => setSelectedClass('')}>All Classes</DropdownMenuItem>
-              {filterOptions?.classes?.map((cls: string) => (
-                <DropdownMenuItem key={cls} onClick={() => setSelectedClass(cls)}>
-                  {cls}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex-1 sm:flex-none">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button variant="outline" icon={School} iconPosition="left" className="w-full sm:w-auto text-[11px] sm:text-xs h-10">
+                    {selectedClass || "Class"}
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="max-h-[300px] overflow-y-auto w-48">
+                <DropdownMenuItem onClick={() => setSelectedClass('')}>All Classes</DropdownMenuItem>
+                {filterOptions?.classes?.map((cls: string) => (
+                    <DropdownMenuItem key={cls} onClick={() => setSelectedClass(cls)}>
+                    {cls}
+                    </DropdownMenuItem>
+                ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
           {/* Channel Filter */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" icon={Radio} iconPosition="left">
-                {selectedChannel || "Channel"}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="max-h-[300px] overflow-y-auto">
-              <DropdownMenuItem onClick={() => setSelectedChannel('')}>All Channels</DropdownMenuItem>
-              {filterOptions?.channels?.map((ch: string) => (
-                <DropdownMenuItem key={ch} onClick={() => setSelectedChannel(ch)}>
-                  {ch}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex-1 sm:flex-none">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button variant="outline" icon={Radio} iconPosition="left" className="w-full sm:w-auto text-[11px] sm:text-xs h-10">
+                    {selectedChannel || "Channel"}
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="max-h-[300px] overflow-y-auto w-48">
+                <DropdownMenuItem onClick={() => setSelectedChannel('')}>All Channels</DropdownMenuItem>
+                {filterOptions?.channels?.map((ch: string) => (
+                    <DropdownMenuItem key={ch} onClick={() => setSelectedChannel(ch)}>
+                    {ch}
+                    </DropdownMenuItem>
+                ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
           {/* Date Filters */}
-          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
-            <Calendar size={16} className="text-slate-400" />
-            <input 
-              type="date" 
-              value={startDate} 
-              onChange={(e) => setStartDate(e.target.value)}
-              className="bg-transparent border-none text-xs focus:ring-0 dark:text-slate-300"
-            />
-            <span className="text-slate-300">-</span>
-            <input 
-              type="date" 
-              value={endDate} 
-              onChange={(e) => setEndDate(e.target.value)}
-              className="bg-transparent border-none text-xs focus:ring-0 dark:text-slate-300"
-            />
+          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 w-full sm:w-auto overflow-hidden">
+            <Calendar size={14} className="text-slate-400 shrink-0" />
+            <div className="flex items-center gap-1">
+                <input 
+                type="date" 
+                value={startDate} 
+                onChange={(e) => setStartDate(e.target.value)}
+                className="bg-transparent border-none text-[10px] sm:text-xs focus:ring-0 dark:text-slate-300 p-0 w-24"
+                />
+                <span className="text-slate-300">-</span>
+                <input 
+                type="date" 
+                value={endDate} 
+                onChange={(e) => setEndDate(e.target.value)}
+                className="bg-transparent border-none text-[10px] sm:text-xs focus:ring-0 dark:text-slate-300 p-0 w-24"
+                />
+            </div>
           </div>
 
           {(selectedClass || selectedChannel || startDate || endDate || searchTerm) && (
@@ -226,7 +231,7 @@ const { data, isLoading, isPlaceholderData } = useQuery({
                     setEndDate('');
                     setSearchTerm('');
                 }}
-                className="text-slate-500 hover:text-red-500"
+                className="text-slate-500 hover:text-red-500 text-[10px] uppercase font-black"
             >
                 Clear
             </Button>
@@ -234,15 +239,16 @@ const { data, isLoading, isPlaceholderData } = useQuery({
         </div>
       </div>
 
+
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50/50 dark:bg-white/5 text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-[0.1em]">
-              <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5">Parent Name</th>
-              <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5">WhatsApp</th>
-              <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5">Child Class</th>
-              <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5">Source Channel</th>
+              <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5">Lead Details</th>
+              <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5 hidden sm:table-cell">WhatsApp</th>
+              <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5 hidden lg:table-cell">Child Class</th>
+              <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5 hidden md:table-cell">Source Channel</th>
               <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5">Status</th>
               <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5 text-right">Actions</th>
             </tr>
@@ -251,25 +257,30 @@ const { data, isLoading, isPlaceholderData } = useQuery({
             {inquiries.map((inquiry: any) => (
               <tr key={inquiry._id} className="group hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-all duration-300">
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center gap-4">
-                    <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-black text-xs shadow-inner">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="size-8 sm:size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-black text-[10px] sm:text-xs shadow-inner shrink-0">
                       {getInitials(inquiry.parentName)}
                     </div>
-                    <span 
-                      onClick={() => handleView(inquiry)} 
-                      className="text-sm font-bold text-slate-900 dark:text-white cursor-pointer hover:text-primary transition-colors"
-                    >
-                      {inquiry.parentName}
-                    </span>
+                    <div className="flex flex-col min-w-0">
+                        <span 
+                        onClick={() => handleView(inquiry)} 
+                        className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white cursor-pointer hover:text-primary transition-colors truncate"
+                        >
+                        {inquiry.parentName}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-medium sm:hidden truncate">
+                            {inquiry.phone || inquiry.whatsapp || "No Phone"}
+                        </span>
+                    </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-600 dark:text-slate-400">{inquiry.phone || inquiry.whatsapp}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-500 dark:text-slate-400">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-600 dark:text-slate-400 hidden sm:table-cell">{inquiry.phone || inquiry.whatsapp}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-500 dark:text-slate-400 hidden lg:table-cell">
                     <span className="bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded-md text-[10px] uppercase">
                         {inquiry.childClass}
                     </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                <td className="px-6 py-4 whitespace-nowrap text-sm hidden md:table-cell">
                    <div className="flex items-center gap-2">
                       <div className="text-slate-400">
                         {React.createElement(getSourceIcon(inquiry.channelName), { size: 14 })}

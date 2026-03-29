@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC } from 'react'
 import Badge from './ui/Badge'
 
@@ -22,10 +23,11 @@ interface ContactPanelProps {
         since: string
         engagements: Engagement[]
         tags: Tag[]
-    }
+    };
+    onBack?: () => void;
 }
 
-const ContactPanel: FC<ContactPanelProps> = ({ contact }) => {
+const ContactPanel: FC<ContactPanelProps> = ({ contact, onBack }) => {
     const engagements: Engagement[] = [
         { title: 'Opened Newsletter #42', time: '2 hours ago', color: 'primary' },
         { title: 'Interacted with Pricing Bot', time: '45 minutes ago', color: 'purple' },
@@ -39,11 +41,20 @@ const ContactPanel: FC<ContactPanelProps> = ({ contact }) => {
     ];
 
     return (
-        <aside className="w-80 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col shrink-0 overflow-y-auto custom-scrollbar">
+        <aside className="w-full md:w-80 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col shrink-0 overflow-y-auto custom-scrollbar">
             {/* Profile Header */}
             <div className="p-8 flex flex-col items-center text-center border-b border-slate-100 dark:border-slate-800/50 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-primary/5 to-transparent dark:from-primary/10" />
                 
+                {/* Mobile Back Button */}
+                <button 
+                    onClick={onBack}
+                    className="md:hidden absolute top-4 left-4 z-20 size-9 flex items-center justify-center rounded-xl bg-white dark:bg-slate-800 text-slate-500 shadow-sm border border-slate-100 dark:border-slate-700 active:scale-95 transition-all"
+                    aria-label="Back to chat"
+                >
+                    <span className="material-symbols-outlined text-xl">arrow_back</span>
+                </button>
+
                 <div className="relative mt-4">
                     <div
                         className="bg-center bg-no-repeat aspect-square bg-cover rounded-3xl h-24 w-24 mb-4 ring-4 ring-white dark:ring-slate-900 shadow-xl"

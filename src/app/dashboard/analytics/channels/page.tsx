@@ -110,64 +110,64 @@ export default function ChannelAnalyticsPage() {
     const colors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4']
 
     return (
-        <main className="flex-1 flex justify-center py-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 min-h-screen">
-            <div className="w-full max-w-[1400px] px-6">
+        <main className="flex-1 flex justify-center py-6 md:py-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 min-h-screen">
+            <div className="w-full max-w-[1400px] px-4 md:px-6">
 
                 {/* Header */}
-                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-12">
-                    <div className="flex flex-col gap-1">
-                        <Link href="/dashboard/analytics" className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-primary transition-colors mb-2 group">
+                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 mb-10 md:mb-12">
+                    <div className="flex flex-col gap-1 w-full lg:w-auto">
+                        <Link href="/dashboard/analytics" className="flex items-center gap-2 text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest hover:text-primary transition-colors mb-2 group">
                             <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
                             Back to Overview
                         </Link>
-                        <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
                             Channel Analytics
                         </h1>
-                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Deep-dive performance profiles and conversion metrics</p>
+                        <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">Deep-dive performance profiles and conversion metrics</p>
                     </div>
 
-                    <div className="flex flex-col md:flex-row items-center gap-4">
-                        <div className="flex items-center gap-2 bg-white/50 backdrop-blur-md dark:bg-white/5 p-1 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full lg:w-auto">
+                        <div className="flex items-center gap-1 bg-white/50 backdrop-blur-md dark:bg-white/5 p-1 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm overflow-x-auto no-scrollbar">
                             {['7d', '30d', '90d', 'all'].map((r) => (
                                 <button
                                     key={r}
                                     onClick={() => { setRange(r); setShowCustom(false); }}
-                                    className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${!showCustom && range === r ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-500 hover:bg-white dark:hover:bg-white/5'}`}
+                                    className={`whitespace-nowrap px-4 sm:px-6 py-2 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all ${!showCustom && range === r ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-500 hover:bg-white dark:hover:bg-white/5'}`}
                                 >
-                                    {r === 'all' ? 'All Time' : r.toUpperCase()}
+                                    {r === 'all' ? 'All' : r.toUpperCase()}
                                 </button>
                             ))}
                             <button
                                 onClick={() => setShowCustom(!showCustom)}
-                                className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${showCustom ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:bg-white dark:hover:bg-white/5'}`}
+                                className={`whitespace-nowrap px-4 sm:px-6 py-2 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all ${showCustom ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:bg-white dark:hover:bg-white/5'}`}
                             >
                                 Custom
                             </button>
                         </div>
 
                         {showCustom && (
-                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300">
+                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
                                 <input
                                     type="date"
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
-                                    className="bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-primary/20"
+                                    className="flex-1 min-w-0 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl px-3 sm:px-4 py-2 text-[10px] sm:text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-primary/20"
                                 />
-                                <span className="text-slate-400 font-bold text-xs uppercase">to</span>
+                                <span className="text-slate-400 font-bold text-[10px] uppercase">to</span>
                                 <input
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-primary/20"
+                                    className="flex-1 min-w-0 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl px-3 sm:px-4 py-2 text-[10px] sm:text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-primary/20"
                                 />
                             </div>
                         )}
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
                              <select
                                 value={selectedClass}
                                 onChange={(e) => setSelectedClass(e.target.value)}
-                                className="bg-white/70 backdrop-blur-md dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-white outline-none focus:ring-4 focus:ring-primary/10 shadow-sm transition-all"
+                                className="flex-1 sm:flex-none bg-white/70 backdrop-blur-md dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl px-3 sm:px-4 py-3 text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-white outline-none focus:ring-4 focus:ring-primary/10 shadow-sm transition-all"
                             >
                                 <option value="all">Every Student</option>
                                 <option value="JSS1">JSS1</option>
@@ -181,7 +181,7 @@ export default function ChannelAnalyticsPage() {
                             <select
                                 value={selectedStatus}
                                 onChange={(e) => setSelectedStatus(e.target.value)}
-                                className="bg-white/70 backdrop-blur-md dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-white outline-none focus:ring-4 focus:ring-primary/10 shadow-sm transition-all"
+                                className="flex-1 sm:flex-none bg-white/70 backdrop-blur-md dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl px-3 sm:px-4 py-3 text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-white outline-none focus:ring-4 focus:ring-primary/10 shadow-sm transition-all"
                             >
                                 <option value="all">Any Status</option>
                                 <option value="new">Fresh Lead</option>
@@ -195,7 +195,7 @@ export default function ChannelAnalyticsPage() {
                 {/* Channel Profile Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
                     {channelStats.map((stat: any, idx: number) => (
-                        <div key={idx} className="group relative bg-white/70 backdrop-blur-md dark:bg-slate-900/70 p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-xl transition-all hover:-translate-y-2 hover:shadow-2xl overflow-hidden">
+                        <div key={idx} className="group relative bg-white/70 backdrop-blur-md dark:bg-slate-900/70 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-xl transition-all hover:-translate-y-2 hover:shadow-2xl overflow-hidden">
                             <div className="flex justify-between items-start mb-8">
                                 <div className="flex items-center gap-4">
                                     <div className="size-14 bg-indigo-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:rotate-6 transition-transform">
@@ -266,23 +266,23 @@ export default function ChannelAnalyticsPage() {
                 </div>
 
         {/* Primary Acquisition Trend */}
-        <div className="bg-white/70 backdrop-blur-md dark:bg-slate-900/70 p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-2xl mb-12">
-            <div className="flex justify-between items-center mb-8">
+        <div className="bg-white/70 backdrop-blur-md dark:bg-slate-900/70 p-4 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-2xl mb-12">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
                 <div>
-                    <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Acquisition Velocity</h3>
-                    <p className="text-xs text-slate-500 font-medium">Monthly inquiries grouped by source channel</p>
+                    <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">Acquisition Velocity</h3>
+                    <p className="text-[10px] sm:text-xs text-slate-500 font-medium">Monthly inquiries grouped by source channel</p>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                     {channels.map((ch, i) => (
                         <div key={ch} className="flex items-center gap-1.5">
                             <div className="size-2 rounded-full" style={{ backgroundColor: colors[i % colors.length] }} />
-                            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">{ch}</span>
+                            <span className="text-[9px] sm:text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">{ch}</span>
                         </div>
                     ))}
                 </div>
             </div>
             
-            <div className="h-[450px] w-full">
+            <div className="h-[300px] sm:h-[450px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <defs>
@@ -333,51 +333,45 @@ export default function ChannelAnalyticsPage() {
 
         {/* Detailed Performance Table */}
         <div className="bg-white/70 backdrop-blur-md dark:bg-slate-900/70 rounded-3xl border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden">
-            <div className="p-8 border-b border-slate-100 dark:border-white/5">
-                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Statistical Audit</h3>
-                <p className="text-xs text-slate-500 font-medium">Month-by-month performance matrix</p>
+            <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-white/5">
+                <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">Statistical Audit</h3>
+                <p className="text-[10px] sm:text-xs text-slate-500 font-medium">Month-by-month performance matrix</p>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto no-scrollbar">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="bg-slate-50/50 dark:bg-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                            <th className="px-8 py-5 border-b border-slate-100 dark:border-white/5">Reporting Period</th>
+                        <tr className="bg-slate-50/50 dark:bg-white/5 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                            <th className="px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-100 dark:border-white/5">Period</th>
                             {channels.map(ch => (
-                                <th key={ch} className="px-8 py-5 border-b border-slate-100 dark:border-white/5">{ch}</th>
+                                <th key={ch} className="px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-100 dark:border-white/5">{ch}</th>
                             ))}
-                            <th className="px-8 py-5 border-b border-slate-100 dark:border-white/5 text-right">Total</th>
+                            <th className="px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-100 dark:border-white/5 text-right">Total</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                         {[...trendData].reverse().map((month: any, idx: number) => (
                             <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors group">
-                                <td className="px-8 py-5 whitespace-nowrap">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-slate-100 dark:bg-white/5 rounded-lg text-slate-500">
-                                            <Calendar size={14} />
+                                <td className="px-4 sm:px-8 py-4 sm:py-5 whitespace-nowrap">
+                                    <div className="flex items-center gap-2 sm:gap-3">
+                                        <div className="p-1.5 sm:p-2 bg-slate-100 dark:bg-white/5 rounded-lg text-slate-500">
+                                            <Calendar size={12} />
                                         </div>
-                                        <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tighter">
+                                        <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white uppercase tracking-tighter">
                                             {month.name}
                                         </span>
                                     </div>
                                 </td>
                                 {channels.map(ch => (
-                                    <td key={ch} className="px-8 py-5 whitespace-nowrap">
+                                    <td key={ch} className="px-4 sm:px-8 py-4 sm:py-5 whitespace-nowrap">
                                         <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                                            <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">
                                                 {month[ch] || 0}
                                             </span>
-                                            <div className="mt-1 h-1 w-8 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                                                <div 
-                                                    className="h-full bg-primary" 
-                                                    style={{ width: `${Math.min(((month[ch] || 0) / 20) * 100, 100)}%` }} 
-                                                />
-                                            </div>
                                         </div>
                                     </td>
                                 ))}
-                                <td className="px-8 py-5 whitespace-nowrap text-right">
-                                    <span className="px-3 py-1 bg-primary text-white text-[10px] font-black rounded-lg shadow-lg shadow-primary/20">
+                                <td className="px-4 sm:px-8 py-4 sm:py-5 whitespace-nowrap text-right">
+                                    <span className="px-2 sm:px-3 py-1 bg-primary text-white text-[9px] sm:text-[10px] font-black rounded-lg shadow-lg shadow-primary/20">
                                         {channels.reduce((sum, ch) => sum + (month[ch] || 0), 0)}
                                     </span>
                                 </td>

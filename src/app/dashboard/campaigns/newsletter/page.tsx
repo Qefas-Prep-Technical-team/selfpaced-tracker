@@ -5,7 +5,6 @@ import React, { useState } from 'react';
 import { EmailConfig } from './EmailConfig';
 import { CostEstimate } from './CostEstimate';
 import { EmailPreview } from './EmailPreview';
-import { BuilderTabs } from './BuilderTabs';
 import { EditorHeader } from './EditorHeader';
 import { SplitScreenLayout } from './SplitScreenLayout';
 import { ChecklistItem, PreSendChecklist } from './PreSendChecklist';
@@ -15,15 +14,12 @@ import { toast } from 'react-toastify';
 
 
 export default function EmailBuilderPage() {
-    const [isSendingTest, setIsSendingTest] = useState(false); // New state
-    const [blocks, setBlocks] = useState<ContentBlock[]>([]); // initialized with your blocks
+    const [isSendingTest, setIsSendingTest] = useState(false);
+    const [blocks, setBlocks] = useState<ContentBlock[]>([]);
     const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
     const [activeEmails, setActiveEmails] = useState<string[]>([]);
-    // NEW: Stats state to share between EmailConfig and CostEstimate
     const [recipientStats, setRecipientStats] = useState({ active: 0, inactive: 0 });
-    // Inside your parent component
     const RATE_PER_RECIPIENT = 0.27;
-    const recipientCount = activeEmails.length; // This would likely come from your contact list state
 
     const calculateCost = (count: number) => {
         const total = count * RATE_PER_RECIPIENT;
@@ -36,11 +32,7 @@ export default function EmailBuilderPage() {
     const handleEditBlock = (blockId: string) => {
         setEditingBlockId(blockId);
     };
-    // Inside your main page or parent component
-    // 1. Explicitly type the array variable
 
-
-    // Inside EmailBuilderPage, keep this function
     const getDynamicChecklist = (blocks: ContentBlock[]): ChecklistItem[] => {
         const hasUnsubscribe = blocks.some(b =>
             b.content.toLowerCase().includes('unsubscribe')
@@ -92,8 +84,6 @@ export default function EmailBuilderPage() {
         ];
     };
 
-
-
     const updateBlockContent = (blockId: string, newContent: string) => {
         setBlocks(prev =>
             prev.map(b => b.id === blockId ? { ...b, content: newContent } : b)
@@ -104,11 +94,9 @@ export default function EmailBuilderPage() {
     const [subject, setSubject] = useState('New Q2 Analytics features for Nigerian Merchants');
     const [previewText, setPreviewText] = useState('Summary of what\'s new in your dashboard...');
 
-    // Content Blocks State
-
-
     // Preview State
     const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
+    const [activeView, setActiveView] = useState<'builder' | 'preview'>('builder');
 
     // Campaign Information
     const campaignName = 'Q2 Growth Update - Nigeria';
@@ -125,23 +113,10 @@ export default function EmailBuilderPage() {
             lastSaved: new Date().toISOString(),
         };
         localStorage.setItem('emailDraft', JSON.stringify(draft));
-        console.log('Draft saved:', draft);
         toast.success('💾 Draft saved successfully!');
     };
 
-    // This converts your visual blocks into the final HTML code
-    const finalHtml = `
-        <html>
-            <body style="margin: 0; padding: 20px; background-color: #f9fafb;">
-                <div style="max-width: 600px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 10px;">
-                    ${generateHtmlFromBlocks(blocks)}
-                </div>
-            </body>
-        </html>
-    `;
-
     const handleScheduleSend = () => {
-        console.log('Scheduling email campaign...');
         toast.info('📅 Schedule send dialog opening...');
     };
 
@@ -154,25 +129,18 @@ export default function EmailBuilderPage() {
         setBlocks([...blocks, newBlock]);
     };
 
-
     const handleChecklistItemClick = (itemId: string) => {
         console.log('Checklist item clicked:', itemId);
-        // Open relevant settings or fix issue
     };
 
     const handleCustomizeCost = () => {
-        console.log('Opening cost customization');
         toast.success('💰 Cost customization dialog');
     };
-
-    // Left Panel Content (Builder)
-    // LINKED CONTENT:
-    // This variable always holds the "Send-Ready" version of your preview
 
     const finalHtmlContent = generateFinalHtml(blocks);
     const handleTestSend = async () => {
         const testEmail = "qefas.lms@gmail.com";
-        setIsSendingTest(true); // Start loading
+        setIsSendingTest(true);
 
         try {
             const response = await fetch('/api/send-bulk', {
@@ -190,46 +158,45 @@ export default function EmailBuilderPage() {
         } catch (err) {
             toast.error("❌ Send failed");
         } finally {
-            setIsSendingTest(false); // Stop loading regardless of success/fail
+            setIsSendingTest(false);
         }
     };
+
     const leftContent = (
-        <div className="p-4 lg:p-10  mx-auto space-y-8">
+        <div className="p-4 lg:p-10 mx-auto space-y-8">
             <EmailConfig
                 subject={subject}
                 previewText={previewText}
                 onSubjectChange={setSubject}
                 onPreviewTextChange={setPreviewText}
                 senderEmail={senderEmail}
-                htmlContent={finalHtmlContent} // <-- Passed here for the blast
+                htmlContent={finalHtmlContent}
                 onSyncComplete={(active, inactive) => {
                     setRecipientStats({ active, inactive });
                 }}
                 onTestSend={handleTestSend}
-                isSendingTest={isSendingTest} // Pass the state down
+                isSendingTest={isSendingTest}
                 setActiveEmails={setActiveEmails}
                 activeEmails={activeEmails}
             />
-
 
             <ContentBlocks
                 blocks={blocks}
                 onBlocksChange={setBlocks}
                 onAddBlock={handleAddBlock}
                 onEditBlock={handleEditBlock}
-                editingBlockId={editingBlockId}       // <-- Added
-                onUpdateContent={updateBlockContent}   // <-- Added
-                setEditingBlockId={setEditingBlockId} // <-- Added to allow closing
+                editingBlockId={editingBlockId}
+                onUpdateContent={updateBlockContent}
+                setEditingBlockId={setEditingBlockId}
             />
 
             <PreSendChecklist
                 onItemClick={handleChecklistItemClick}
-                // CHANGE THIS LINE:
                 items={getDynamicChecklist(blocks)}
             />
 
             <CostEstimate
-                recipientCount={activeEmails.length} // Use the state directly here
+                recipientCount={activeEmails.length}
                 ratePerRecipient="₦0.27"
                 estimatedCost={calculateCost(activeEmails.length)}
                 deliveryTime="calculating..."
@@ -238,31 +205,51 @@ export default function EmailBuilderPage() {
         </div>
     );
 
-    // Right Panel Content (Preview)
     const rightContent = (
         <EmailPreview
             subject={subject}
             senderEmail={senderEmail}
-            blocks={blocks} // Ensure this is the 'blocks' state from your useState hook
+            blocks={blocks}
             previewMode={previewMode}
             onModeChange={setPreviewMode}
         />
     );
 
     return (
+        <main className="flex-1 h-screen flex flex-col bg-white dark:bg-background-dark overflow-hidden">
+            <EditorHeader
+                campaignName={campaignName}
+                campaignId={campaignId}
+                lastUpdated={lastUpdated}
+                onSaveDraft={handleSaveDraft}
+                onScheduleSend={handleScheduleSend}
+            />
 
-
-        <main className="flex-1 h-screen flex flex-col">
+            {/* Mobile View Switcher */}
+            <div className="lg:hidden flex items-center p-4 border-b border-slate-100 dark:border-white/5 bg-white dark:bg-background-dark/50 backdrop-blur-md sticky top-0 z-20 shrink-0">
+                <div className="flex-1 flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
+                    <button 
+                        onClick={() => setActiveView('builder')}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all ${activeView === 'builder' ? 'bg-white dark:bg-slate-800 text-primary shadow-sm ring-1 ring-black/5' : 'text-slate-500'}`}
+                    >
+                        <span className="material-symbols-outlined text-sm">edit</span>
+                        Builder
+                    </button>
+                    <button 
+                        onClick={() => setActiveView('preview')}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all ${activeView === 'preview' ? 'bg-white dark:bg-slate-800 text-primary shadow-sm ring-1 ring-black/5' : 'text-slate-500'}`}
+                    >
+                        <span className="material-symbols-outlined text-sm">visibility</span>
+                        Preview
+                    </button>
+                </div>
+            </div>
 
             <SplitScreenLayout
                 leftContent={leftContent}
                 rightContent={rightContent}
-                defaultLeftWidth={50}
-                minLeftWidth={30}
-                minRightWidth={30}
+                activeView={activeView}
             />
         </main>
-
     );
-
 }

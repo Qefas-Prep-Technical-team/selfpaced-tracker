@@ -58,7 +58,7 @@ const MessageInput: FC<MessageInputProps> = ({ onSendMessage }) => {
                                 <span className="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-tight">AI Co-pilot</span>
                             </div>
                         </div>
-                        <span className="text-[10px] text-slate-400 font-medium">Shift + Enter for new line</span>
+                        <span className="text-[10px] text-slate-400 font-medium hidden md:inline">Shift + Enter for new line</span>
                     </div>
                 </div>
 

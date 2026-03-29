@@ -56,19 +56,19 @@ export default function MessagingCenterPage() {
                     defaultValue="sms"
                     onValueChange={(value) => setActiveTab(value)}
                 >
-                    <Tabs.List className="flex items-center gap-2 bg-white/50 backdrop-blur-md dark:bg-white/5 p-1 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm mb-10 w-fit">
+                    <Tabs.List className="flex items-center gap-1.5 bg-white/50 backdrop-blur-md dark:bg-white/5 p-1 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm mb-10 w-full sm:w-fit overflow-x-auto no-scrollbar whitespace-nowrap">
                         {tabs.map((tab) => (
                             <Tabs.Trigger
                                 key={tab.id}
                                 value={tab.id}
-                                className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2
+                                className={`px-4 sm:px-8 py-2.5 sm:py-3 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 shrink-0
                                     ${activeTab === tab.id
                                         ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105 z-10'
                                         : 'text-slate-500 hover:bg-white dark:hover:bg-white/5'
                                     }`}
                             >
-                                <tab.icon size={14} />
-                                {tab.label}
+                                <tab.icon className="size-3.5 sm:size-4" />
+                                <span className="inline">{tab.label}</span>
                             </Tabs.Trigger>
                         ))}
                     </Tabs.List>

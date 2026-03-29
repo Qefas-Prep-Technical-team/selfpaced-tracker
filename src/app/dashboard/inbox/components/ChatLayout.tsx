@@ -16,6 +16,7 @@ interface Contact {
 
 export default function ChatLayout() {
     const [selectedContact, setSelectedContact] = useState<string>('sarah-jenkins')
+    const [activeView, setActiveView] = useState<'list' | 'chat' | 'details'>('list')
 
     const contacts: Contact[] = [
         {
@@ -44,22 +45,49 @@ export default function ChatLayout() {
 
     const selectedContactData = contacts.find(c => c.id === selectedContact)
 
+    const handleSelectContact = (id: string) => {
+        setSelectedContact(id)
+        setActiveView('chat')
+    }
+
     return (
-        <main className="flex flex-1 overflow-hidden">
-            {/* Left Panel - Conversation List */}
-            <ConversationList
-                contacts={contacts}
-                selectedContact={selectedContact}
-                onSelectContact={setSelectedContact}
-            />
+        <main className="flex flex-1 overflow-hidden relative">
+            {/* Conversation List */}
+            <div className={`
+                absolute inset-0 z-10 bg-background transition-transform duration-300 md:relative md:translate-x-0 md:flex md:z-auto md:w-85
+                ${activeView === 'list' ? 'translate-x-0' : '-translate-x-full'}
+            `}>
+                <ConversationList
+                    contacts={contacts}
+                    selectedContact={selectedContact}
+                    onSelectContact={handleSelectContact}
+                />
+            </div>
 
-            {/* Center Panel - Chat Window */}
-            <ChatWindow contactId={selectedContact} />
+            {/* Chat Window */}
+            <div className={`
+                absolute inset-0 z-20 bg-background transition-transform duration-300 md:relative md:translate-x-0 md:flex md:z-auto md:flex-1
+                ${activeView === 'chat' ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
+            `}>
+                <ChatWindow 
+                    contactId={selectedContact} 
+                    onBack={() => setActiveView('list')}
+                    onShowDetails={() => setActiveView('details')}
+                />
+            </div>
 
-            {/* Right Panel - Contact Info */}
-            {selectedContactData && <ContactPanel 
-            // contact={selectedContactData}
-             />}
+            {/* Contact Info Panel */}
+            <div className={`
+                absolute inset-0 z-30 bg-background transition-transform duration-300 md:relative md:translate-x-0 md:flex md:z-auto md:w-80
+                ${activeView === 'details' ? 'translate-x-0' : 'translate-x-full md:translate-x-0 md:hidden lg:flex'}
+            `}>
+                {selectedContactData && (
+                    <ContactPanel 
+                        contact={selectedContactData as any}
+                        onBack={() => setActiveView('chat')}
+                    />
+                )}
+            </div>
         </main>
     )
 }

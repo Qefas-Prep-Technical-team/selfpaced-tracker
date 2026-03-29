@@ -51,11 +51,11 @@ export default function SubscribersPage() {
 
     <    >
 
-      <main className="flex-1  p-8 overflow-y-auto">
+      <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
         <div className="max-w-6xl mx-auto space-y-8">
           {/* Page Heading */}
-          <div className="flex flex-col gap-2">
-            <h2 className="text-3xl font-black tracking-tight">
+          <div className="flex flex-col gap-1 sm:gap-2">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
               Newsletter Subscribers
             </h2>
             <p className="text-[#734c9a] dark:text-[#a686c7]">
@@ -67,7 +67,7 @@ export default function SubscribersPage() {
           <SubscriptionFlow />
 
           {/* KPI Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {isLoading
               ? [1, 2, 3].map(i => <div key={i} className="h-32 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-xl" />)
               : statsConfig.map((stat) => (

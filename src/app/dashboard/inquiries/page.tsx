@@ -26,29 +26,28 @@ export default function ParentInquiriesPage() {
   }
 
   return (
-    <main className="flex-1 bg-background-light dark:bg-background-dark p-8">
+    <main className="flex-1 bg-background-light dark:bg-background-dark p-4 md:p-8">
       {/* Top Header */}
-      <div className="flex items-end justify-between mb-8">
+      <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 mb-8">
         <div>
-          <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
             Parent Inquiries
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
             Track and manage prospective student leads.
           </p>
         </div>
         
-        <div className="flex gap-3">
-          <Button variant="outline" icon={Download} iconPosition="left">
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <Button variant="outline" icon={Download} iconPosition="left" className="w-full sm:w-auto py-3">
             Export Leads
           </Button>
           
-          {/* FIX: Added onClick to trigger the Add Modal */}
           <Button 
             icon={Plus} 
             iconPosition="left"
             onClick={() => setIsAddModalOpen(true)}
-            className='cursor-pointer'
+            className='cursor-pointer w-full sm:w-auto py-3 shadow-lg shadow-primary/20 bg-primary test-white font-black uppercase tracking-wider text-[11px]'
           >
             Add New Inquiry
           </Button>

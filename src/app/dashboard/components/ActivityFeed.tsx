@@ -78,13 +78,13 @@ export default function ActivityFeed() {
 
       <div className="flex-1 overflow-x-auto min-h-0">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-slate-50 dark:bg-slate-800/50 text-[#4c739a] text-xs font-bold uppercase tracking-wider sticky top-0 z-10">
+          <thead className="bg-slate-50 dark:bg-slate-800/50 text-[#4c739a] text-[10px] sm:text-xs font-black uppercase tracking-wider sticky top-0 z-10">
             <tr>
-              <th className="px-6 py-4">Event</th>
-              <th className="px-6 py-4">User</th>
-              <th className="px-6 py-4">Channel</th>
-              <th className="px-6 py-4">Time</th>
-              <th className="px-6 py-4 text-right">Status</th>
+              <th className="px-3 sm:px-6 py-4">Event</th>
+              <th className="px-3 sm:px-6 py-4">User</th>
+              <th className="px-3 sm:px-6 py-4 hidden sm:table-cell">Channel</th>
+              <th className="px-3 sm:px-6 py-4 hidden md:table-cell">Time</th>
+              <th className="px-3 sm:px-6 py-4 text-right">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -93,24 +93,24 @@ export default function ActivityFeed() {
             ) : (
               paginatedActivities.map((activity, index) => (
                 <tr key={index} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors animate-in fade-in slide-in-from-top-1 duration-300">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`size-8 rounded-full flex items-center justify-center shrink-0 ${eventIcons[activity.event]?.bg || 'bg-slate-100'} ${eventIcons[activity.event]?.text || 'text-slate-500'}`}>
-                        <span className="material-symbols-outlined text-lg">{eventIcons[activity.event]?.icon || 'event_note'}</span>
+                  <td className="px-3 sm:px-6 py-4">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className={`size-7 sm:size-8 rounded-full flex items-center justify-center shrink-0 ${eventIcons[activity.event]?.bg || 'bg-slate-100'} ${eventIcons[activity.event]?.text || 'text-slate-500'}`}>
+                        <span className="material-symbols-outlined text-base sm:text-lg">{eventIcons[activity.event]?.icon || 'event_note'}</span>
                       </div>
-                      <span className="text-sm font-medium truncate max-w-[150px]">{activity.event}</span>
+                      <span className="text-xs sm:text-sm font-bold truncate max-w-[100px] sm:max-w-[150px]">{activity.event}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-slate-700 dark:text-slate-300 truncate">{activity.user}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 text-sm text-[#4c739a]">
-                      <span className={`material-symbols-outlined text-base ${activity.channel.color || ''}`}>{activity.channel.icon}</span>
+                  <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 truncate max-w-[80px] sm:max-w-none">{activity.user}</td>
+                  <td className="px-3 sm:px-6 py-4 hidden sm:table-cell">
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-[#4c739a] font-bold">
+                      <span className={`material-symbols-outlined text-sm sm:text-base ${activity.channel.color || ''}`}>{activity.channel.icon}</span>
                       {activity.channel.name}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-[#4c739a] whitespace-nowrap">{activity.time}</td>
-                  <td className="px-6 py-4 text-right">
-                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase whitespace-nowrap ${statusColors[activity.status]}`}>
+                  <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-[#4c739a] whitespace-nowrap hidden md:table-cell font-bold">{activity.time}</td>
+                  <td className="px-3 sm:px-6 py-4 text-right">
+                    <span className={`px-2 py-1 rounded text-[9px] font-black uppercase whitespace-nowrap ${statusColors[activity.status]}`}>
                       {activity.status.replace('_', ' ')}
                     </span>
                   </td>
