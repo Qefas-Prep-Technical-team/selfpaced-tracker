@@ -21,7 +21,7 @@ const RegistrationLayout: React.FC<RegistrationLayoutProps> = ({
   className,
 }) => {
   return (
-    <div className={cn("flex min-h-screen w-full bg-white dark:bg-background-dark overflow-hidden", className)}>
+    <div className={cn("flex min-h-screen w-full bg-background overflow-hidden", className)}>
       <HeroSection title={heroTitle} subtitle={heroSubtitle} />
       <RegistrationCard
         email={email}

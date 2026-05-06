@@ -93,7 +93,7 @@ export default function InviteManagementPage() {
 
   return (
     <ProtectedAdminRoute>
-      <main className="mx-auto px-6 py-8">
+      <main className="mx-auto px-6 py-8 bg-background min-h-screen">
         <PageHeading
           title="Invite Management"
           description="Manage secure, invite-only user access to the QEFAS platform."

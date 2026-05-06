@@ -88,14 +88,14 @@ const ChatWindow: FC<ChatWindowProps> = ({ contactId, onBack, onShowDetails }) =
     };
 
     if (isLoading) return (
-        <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 dark:bg-background-dark/50 gap-4">
+        <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 dark:bg-background/50 gap-4">
             <div className="size-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
             <p className="text-sm font-medium text-slate-500 animate-pulse">Loading conversation...</p>
         </div>
     );
 
     return (
-        <section className="flex-1 flex flex-col min-h-0 h-full overflow-hidden bg-slate-50/30 dark:bg-background-dark/30 relative">
+        <section className="flex-1 flex flex-col min-h-0 h-full overflow-hidden bg-slate-50/30 dark:bg-background/30 relative">
             {/* Subtle background pattern for premium feel */}
             <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
 

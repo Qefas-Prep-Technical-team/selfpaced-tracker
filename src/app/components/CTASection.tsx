@@ -29,7 +29,7 @@ export function CTASection() {
         <Button
           variant="secondary"
           size="2xl"
-          className="bg-white text-text-primary hover:bg-slate-50"
+          className="bg-white text-primary hover:bg-slate-50"
         >
           Go to Analytics Dashboard
         </Button>

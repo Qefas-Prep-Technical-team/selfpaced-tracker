@@ -29,7 +29,7 @@ const ChatHeader: FC<ChatHeaderProps> = ({ name, status, avatar, conversationId,
     };
 
     return (
-        <div className="h-16 md:h-20 px-4 md:px-6 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md flex items-center justify-between sticky top-0 z-10 w-full">
+        <div className="h-16 md:h-20 px-4 md:px-6 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background/80 backdrop-blur-md flex items-center justify-between sticky top-0 z-10 w-full">
             <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
                 {/* Mobile Back Button */}
                 <button 

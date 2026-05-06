@@ -26,7 +26,7 @@ export default function ParentInquiriesPage() {
   }
 
   return (
-    <main className="flex-1 bg-background-light dark:bg-background-dark p-4 md:p-8">
+    <main className="flex-1 bg-background p-4 md:p-8 min-h-screen">
       {/* Top Header */}
       <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 mb-8">
         <div>

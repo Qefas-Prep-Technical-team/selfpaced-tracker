@@ -41,7 +41,7 @@ const ContactPanel: FC<ContactPanelProps> = ({ contact, onBack }) => {
     ];
 
     return (
-        <aside className="w-full md:w-80 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col shrink-0 overflow-y-auto custom-scrollbar">
+        <aside className="w-full md:w-80 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-background flex flex-col shrink-0 overflow-y-auto custom-scrollbar">
             {/* Profile Header */}
             <div className="p-8 flex flex-col items-center text-center border-b border-slate-100 dark:border-slate-800/50 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-primary/5 to-transparent dark:from-primary/10" />

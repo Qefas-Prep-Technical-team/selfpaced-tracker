@@ -15,7 +15,7 @@ const Layout = ({
     const closeSidebar = () => setIsSidebarOpen(false);
 
     return (
-        <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+        <div className="flex min-h-screen bg-background transition-colors duration-300">
             {/* Sidebar toggle for mobile with backdrop */}
             {isSidebarOpen && (
                 <div 

@@ -28,7 +28,7 @@ export default function DashboardPage() {
   return (
     <>
       <div className="flex h-screen overflow-hidden">
-        <main className="flex-1 bg-background-light dark:bg-background-dark flex flex-col overflow-y-auto">
+        <main className="flex-1 bg-background flex flex-col overflow-y-auto">
           <div className="max-w-[1440px] w-full mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 pb-8">
               <div className="flex flex-col gap-1">

@@ -74,7 +74,7 @@ export default function RegistrationPage() {
   // 1. Loading State
   if (isVerifying) {
     return (
-      <div className="h-screen w-full flex flex-col items-center justify-center gap-4 bg-slate-50 dark:bg-background-dark">
+      <div className="h-screen w-full flex flex-col items-center justify-center gap-4 bg-background">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
         <p className="text-slate-500 font-medium">Verifying your invitation...</p>
       </div>

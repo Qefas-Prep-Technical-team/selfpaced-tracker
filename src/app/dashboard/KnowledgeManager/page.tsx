@@ -98,7 +98,7 @@ export default function KnowledgeCenter() {
   };
 
   return (
-    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen p-4 md:p-8">
+    <div className="bg-background text-slate-900 dark:text-slate-100 font-display min-h-screen p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8 flex justify-between items-end">
