@@ -34,7 +34,7 @@ export function ValueCards() {
         {valueCards.map((card) => (
           <div
             key={card.title}
-            className="flex flex-col gap-4 p-6 rounded-xl border border-border-medium dark:border-white/10 bg-white dark:bg-background-dark/50 hover:border-primary/50 transition-all group"
+            className="flex flex-col gap-4 p-6 rounded-xl border border-border-medium dark:border-white/5 bg-white dark:bg-white/[0.02] hover:border-primary/50 dark:hover:bg-white/[0.05] transition-all group"
           >
             <card.icon className="text-primary text-3xl group-hover:scale-110 transition-transform" />
             <div>

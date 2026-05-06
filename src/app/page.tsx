@@ -9,7 +9,7 @@ import { ValueCards } from "./components/ValueCards";
 
 export default function HomePage() {
   return (
-    <div className="bg-background-light dark:bg-background-dark text-text-primary dark:text-white transition-colors duration-300 min-h-screen">
+    <div className="bg-background text-text-primary dark:text-white transition-colors duration-300 min-h-screen">
       <MarketingHeader />
       
       <main className="max-w-400 mx-auto px-6 lg:px-40">

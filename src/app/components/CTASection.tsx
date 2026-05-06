@@ -11,7 +11,7 @@ const userAvatars = [
 
 export function CTASection() {
   return (
-    <section className="my-20 bg-primary rounded-3xl p-12 lg:p-20 relative overflow-hidden text-center text-white">
+    <section className="my-20 bg-primary rounded-3xl p-12 lg:p-20 relative overflow-hidden text-center text-primary-foreground shadow-2xl shadow-primary/20">
       {/* Background Effects */}
       <div className="absolute top-0 right-0 size-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
       <div className="absolute bottom-0 left-0 size-64 bg-black/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl" />
@@ -29,18 +29,18 @@ export function CTASection() {
         <Button
           variant="secondary"
           size="2xl"
-          className="bg-white text-primary hover:bg-slate-50"
+          className="bg-white text-text-primary hover:bg-slate-50"
         >
           Go to Analytics Dashboard
         </Button>
 
         {/* Trust Indicators */}
-        <div className="flex items-center gap-4 text-sm text-white/60">
+        <div className="flex items-center gap-4 text-sm text-primary-foreground/70">
           <div className="flex -space-x-2">
             {userAvatars.map((avatar, index) => (
               <div
                 key={index}
-                className="relative size-8 rounded-full bg-slate-200 border-2 border-primary overflow-hidden"
+                className="relative size-8 rounded-full bg-slate-200 border-2 border-primary/20 overflow-hidden"
               >
                 <Image
                   src={avatar}

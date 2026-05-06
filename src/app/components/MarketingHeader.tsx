@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Button } from './ui/Button';
 import Logo from './Logo';
+import { ThemeToggle } from '@/components/navbar/ThemeToggle';
 
 export function MarketingHeader() {
   const { data: session, status } = useSession();
@@ -16,7 +17,7 @@ export function MarketingHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-border-light  px-6 lg:px-40 py-4">
+    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border-light dark:border-white/5 px-6 lg:px-40 py-4">
       <div className="max-w-[1280px] mx-auto flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
@@ -41,6 +42,7 @@ export function MarketingHeader() {
           </nav>
 
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             {session ? (
               // Logged In State
               <Link href="/dashboard">

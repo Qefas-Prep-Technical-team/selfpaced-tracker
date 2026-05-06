@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "workspacePath": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker",
+  "entries": [
+    {
+      "command": "npm i",
+      "timestamp": 1778090012160,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "npm run dev",
+      "timestamp": 1778090943978,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    }
+  ],
+  "lastUpdated": 1778090943978
+}

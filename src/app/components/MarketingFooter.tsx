@@ -9,7 +9,7 @@ const footerLinks = [
 
 export function MarketingFooter() {
   return (
-    <footer className="bg-white dark:bg-background-dark/50 border-t border-border-light dark:border-white/10 py-12">
+    <footer className="bg-background border-t border-border-light dark:border-white/5 py-12">
       <div className="max-w-[1280px] mx-auto px-6 lg:px-40 flex flex-col md:flex-row justify-between items-center gap-8">
         {/* Logo */}
         <div className="flex items-center gap-3">

@@ -42,7 +42,7 @@ export function DataFlow() {
           <div
             key={step.title}
             className={`
-              z-10 bg-background-light dark:bg-background-dark
+              z-10 bg-background
               ${index === 0 ? 'pr-8' : index === flowSteps.length - 1 ? 'pl-8' : 'px-8'}
               flex flex-col items-center text-center
             `}
