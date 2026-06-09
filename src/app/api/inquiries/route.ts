@@ -160,6 +160,16 @@ export async function POST(req: NextRequest) {
         });
         const resData = await response.json();
         
+        if (resData?.code === "ok") {
+          inquiry.status = "contacted";
+          inquiry.contactHistory.push({
+            contactedAt: new Date(),
+            contactMethod: "sms",
+            message: welcomeSms
+          });
+          await inquiry.save();
+        }
+
         // Log welcome SMS as a Campaign in our DB history for full tracking visibility
         await Campaign.create({
           title: `Welcome SMS - ${parent}`,

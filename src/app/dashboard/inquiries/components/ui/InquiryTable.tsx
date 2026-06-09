@@ -245,6 +245,7 @@ const { data, isLoading, isPlaceholderData } = useQuery({
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50/50 dark:bg-white/5 text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-[0.1em]">
+              <th className="px-4 py-5 border-b border-slate-100 dark:border-white/5 w-12 text-center">S/N</th>
               <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5">Lead Details</th>
               <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5 hidden sm:table-cell">WhatsApp</th>
               <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5 hidden lg:table-cell">Child Class</th>
@@ -255,8 +256,11 @@ const { data, isLoading, isPlaceholderData } = useQuery({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-            {inquiries.map((inquiry: any) => (
+            {inquiries.map((inquiry: any, index: number) => (
               <tr key={inquiry._id} className="group hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-all duration-300">
+                <td className="px-4 py-4 whitespace-nowrap text-center text-xs font-bold text-slate-400">
+                  {(currentPage - 1) * limit + index + 1}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-3 sm:gap-4">
                     <div className="size-8 sm:size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-black text-[10px] sm:text-xs shadow-inner shrink-0">
