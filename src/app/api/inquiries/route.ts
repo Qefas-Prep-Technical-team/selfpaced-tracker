@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
 
     const contactWhatsapp = process.env.CONTACT_WHATSAPP_NUMBER || "2347065250817";
 
-    const welcomeSms = `Hello ${parent}, welcome to Qefas! We see your interest in the ${selectedClass} class. If you do not receive a call/message from us shortly, please register using ${regLink} or chat/call us on WhatsApp via https://wa.me/${contactWhatsapp}`;
+    const welcomeSms = `Hello ${parent}, welcome to Qefas! We see your interest in the ${selectedClass} selfpaced course. If you do not receive a call/message from us shortly, please register using ${regLink} or chat/call us on WhatsApp via https://wa.me/${contactWhatsapp}`;
 
     // Format recipient phone number
     const formattedRecipient = formatPhoneNumber(whatsapp);
