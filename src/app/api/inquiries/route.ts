@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
 
     const contactWhatsapp = process.env.CONTACT_WHATSAPP_NUMBER || "2348165246864";
 
-    const welcomeSms = `Hello ${parent}, welcome to Qefas! We see your interest in the ${selectedClass} selfpaced course. If you do not receive a call/message from us shortly, please register using ${regLink} or chat/call us on WhatsApp via https://wa.me/${contactWhatsapp}`;
+    const welcomeSms = `Hello ${parent}, welcome to Qefas Prep! We see your interest in the ${selectedClass} selfpaced course. If you do not receive a call/message from us shortly, please register using ${regLink} or chat/call us on WhatsApp via https://wa.me/${contactWhatsapp}`;
 
     // Format recipient phone number
     const formattedRecipient = formatPhoneNumber(whatsapp);
@@ -162,6 +162,9 @@ export async function POST(req: NextRequest) {
         
         if (resData?.code === "ok") {
           inquiry.status = "contacted";
+          if (!inquiry.contactHistory) {
+            inquiry.contactHistory = [];
+          }
           inquiry.contactHistory.push({
             contactedAt: new Date(),
             contactMethod: "sms",
@@ -217,6 +220,7 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get("search") || "";
     const childClass = searchParams.get("childClass") || "";
     const channelName = searchParams.get("channelName") || "";
+    const status = searchParams.get("status") || "";
     const startDate = searchParams.get("startDate") || "";
     const endDate = searchParams.get("endDate") || "";
 
@@ -241,6 +245,10 @@ export async function GET(req: NextRequest) {
 
     if (channelName) {
       query.channelName = channelName;
+    }
+
+    if (status) {
+      query.status = status;
     }
 
     if (startDate || endDate) {

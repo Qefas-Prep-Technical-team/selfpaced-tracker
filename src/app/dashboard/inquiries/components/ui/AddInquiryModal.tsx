@@ -89,7 +89,7 @@ export function AddInquiryModal({ isOpen, onClose }: { isOpen: boolean; onClose:
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormInput
             label="Parent Name"
-            placeholder="Ola Olasunkanmi5"
+            placeholder="e.g. John Doe"
             icon={<User size={18} />}
             {...form.register('parentName', { required: 'Required' })}
             error={form.formState.errors.parentName?.message}

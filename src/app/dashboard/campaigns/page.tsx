@@ -67,16 +67,22 @@ export default function MessagingCenterPage() {
     // Sub-tab toggles within History tab
     const [historySubTab, setHistorySubTab] = useState('local'); // 'local' or 'termii'
 
-    // Search query for live logs
+    // Search query for live logs and history
     const [searchLogQuery, setSearchLogQuery] = useState('');
+    const [searchHistoryQuery, setSearchHistoryQuery] = useState('');
 
     // Pagination for live logs
     const [currentPage, setCurrentPage] = useState(1);
     const logsPerPage = 5;
 
+    // Pagination for campaign history
+    const [historyCurrentPage, setHistoryCurrentPage] = useState(1);
+    const historyItemsPerPage = 10;
+
     // Pop-up details preview state
     const [selectedLog, setSelectedLog] = useState<any>(null);
     const [selectedTermiiCampaign, setSelectedTermiiCampaign] = useState<any>(null);
+    const [selectedLocalCampaign, setSelectedLocalCampaign] = useState<any>(null);
     const [isFetchingCampaignDetail, setIsFetchingCampaignDetail] = useState(false);
     const [campaignDetailResult, setCampaignDetailResult] = useState<any>(null);
 
@@ -134,6 +140,11 @@ export default function MessagingCenterPage() {
     useEffect(() => {
         setCurrentPage(1);
     }, [searchLogQuery]);
+
+    // Reset pagination for campaign history on subtab or search change
+    useEffect(() => {
+        setHistoryCurrentPage(1);
+    }, [historySubTab, searchHistoryQuery]);
 
     // Set default Sender ID when options are fetched
     useEffect(() => {
@@ -439,6 +450,38 @@ export default function MessagingCenterPage() {
     const startIndex = (currentPage - 1) * logsPerPage;
     const currentLogs = filteredTermiiLogs.slice(startIndex, startIndex + logsPerPage);
 
+    // Paginated Campaign History (Local)
+    const localHistoryLogs = (campaignHistory || []).filter((camp: any) => {
+        if (!searchHistoryQuery) return true;
+        const q = searchHistoryQuery.toLowerCase();
+        return (
+            camp.title?.toLowerCase().includes(q) ||
+            camp.message?.toLowerCase().includes(q) ||
+            camp.channel?.toLowerCase().includes(q) ||
+            camp.status?.toLowerCase().includes(q) ||
+            camp.recipientsCount?.toString().includes(q)
+        );
+    });
+    const localHistoryTotalPages = Math.ceil(localHistoryLogs.length / historyItemsPerPage);
+    const localHistoryStartIndex = (historyCurrentPage - 1) * historyItemsPerPage;
+    const currentLocalHistory = localHistoryLogs.slice(localHistoryStartIndex, localHistoryStartIndex + historyItemsPerPage);
+
+    // Paginated Campaign History (Termii)
+    const termiiHistoryLogs = (termiiCampaignsData?.content || []).filter((camp: any) => {
+        if (!searchHistoryQuery) return true;
+        const q = searchHistoryQuery.toLowerCase();
+        return (
+            camp.campaign_id?.toLowerCase().includes(q) ||
+            camp.phone_book?.toLowerCase().includes(q) ||
+            camp.camp_type?.toLowerCase().includes(q) ||
+            camp.status?.toLowerCase().includes(q) ||
+            camp.total_recipients?.toString().includes(q)
+        );
+    });
+    const termiiHistoryTotalPages = Math.ceil(termiiHistoryLogs.length / historyItemsPerPage);
+    const termiiHistoryStartIndex = (historyCurrentPage - 1) * historyItemsPerPage;
+    const currentTermiiHistory = termiiHistoryLogs.slice(termiiHistoryStartIndex, termiiHistoryStartIndex + historyItemsPerPage);
+
     return (
         <main className="flex-1 flex justify-center py-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 min-h-screen">
             <div className="w-full max-w-[1200px] px-6">
@@ -715,12 +758,25 @@ export default function MessagingCenterPage() {
                         <div className="bg-white/70 backdrop-blur-md dark:bg-slate-900/70 p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-2xl">
                             
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-                                <h3 className="text-xl font-black flex items-center gap-3">
+                                <h3 className="text-xl font-black flex items-center gap-3 w-full sm:w-auto">
                                     <div className="p-2 bg-primary/10 rounded-xl text-primary">
                                         <BarChart3 className="w-5 h-5" />
                                     </div>
-                                    Campaign History & Reports
+                                    Campaign History
                                 </h3>
+
+                                <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                                    <div className="relative w-full sm:w-64">
+                                        <input
+                                            type="text"
+                                            value={searchHistoryQuery}
+                                            onChange={(e) => setSearchHistoryQuery(e.target.value)}
+                                            placeholder="Search title, ID, or number..."
+                                            className="w-full text-xs pl-8 pr-4 py-2 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl font-bold focus:border-primary focus:ring-primary"
+                                        />
+                                        <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    </div>
+
 
                                 <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
                                     <button
@@ -744,16 +800,19 @@ export default function MessagingCenterPage() {
                                         Termii API Campaigns
                                     </button>
                                 </div>
+                                </div>
                             </div>
 
                             {historySubTab === 'local' ? (
                                 isLoadingHistory ? (
                                     <div className="p-10 text-center text-slate-500 animate-pulse">Loading broadcast history...</div>
                                 ) : campaignHistory && campaignHistory.length > 0 ? (
-                                    <div className="overflow-x-auto">
+                                    <div className="space-y-4">
+                                        <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse">
                                             <thead>
                                                 <tr className="border-b border-slate-100 dark:border-slate-800 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                                    <th className="py-4 px-4 w-12 text-center">S/N</th>
                                                     <th className="py-4 px-4">Campaign Title</th>
                                                     <th className="py-4 px-4">Channel</th>
                                                     <th className="py-4 px-4">Message</th>
@@ -764,8 +823,15 @@ export default function MessagingCenterPage() {
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                                                {campaignHistory.map((camp: any) => (
-                                                    <tr key={camp._id} className="text-sm font-medium hover:bg-slate-50/55 dark:hover:bg-slate-800/20">
+                                                {currentLocalHistory.map((camp: any, idx: number) => (
+                                                    <tr 
+                                                        key={camp._id} 
+                                                        onClick={() => setSelectedLocalCampaign(camp)}
+                                                        className="text-sm font-medium hover:bg-slate-50/55 dark:hover:bg-slate-800/20 cursor-pointer transition-colors"
+                                                    >
+                                                        <td className="py-4 px-4 text-center font-black text-slate-400 text-xs">
+                                                            {localHistoryStartIndex + idx + 1}
+                                                        </td>
                                                         <td className="py-4 px-4 font-bold text-slate-800 dark:text-slate-100 max-w-[180px] truncate">
                                                             {camp.title}
                                                         </td>
@@ -813,6 +879,35 @@ export default function MessagingCenterPage() {
                                             </tbody>
                                         </table>
                                     </div>
+                                    
+                                    {/* Pagination Controls */}
+                                    {localHistoryTotalPages > 1 && (
+                                        <div className="flex items-center justify-between pt-6 mt-4 border-t border-slate-100 dark:border-slate-800">
+                                            <span className="text-xs text-slate-500 font-bold">
+                                                Showing {localHistoryStartIndex + 1} to {Math.min(localHistoryStartIndex + historyItemsPerPage, localHistoryLogs.length)} of {localHistoryLogs.length} broadcasts
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => setHistoryCurrentPage(prev => Math.max(prev - 1, 1))}
+                                                    disabled={historyCurrentPage === 1}
+                                                    className="px-3 py-1.5 text-xs font-black uppercase tracking-wider bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                                                >
+                                                    Prev
+                                                </button>
+                                                <span className="text-xs text-slate-600 dark:text-slate-400 font-black">
+                                                    Page {historyCurrentPage} of {localHistoryTotalPages}
+                                                </span>
+                                                <button
+                                                    onClick={() => setHistoryCurrentPage(prev => Math.min(prev + 1, localHistoryTotalPages))}
+                                                    disabled={historyCurrentPage === localHistoryTotalPages}
+                                                    className="px-3 py-1.5 text-xs font-black uppercase tracking-wider bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                                                >
+                                                    Next
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    </div>
                                 ) : (
                                     <div className="p-20 text-center">
                                         <div className="size-16 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -826,10 +921,12 @@ export default function MessagingCenterPage() {
                                 isLoadingTermiiCampaigns ? (
                                     <div className="p-10 text-center text-slate-500 animate-pulse">Loading Termii API campaigns...</div>
                                 ) : termiiCampaignsData?.content && termiiCampaignsData.content.length > 0 ? (
-                                    <div className="overflow-x-auto">
+                                    <div className="space-y-4">
+                                        <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse">
                                             <thead>
                                                 <tr className="border-b border-slate-100 dark:border-slate-800 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                                    <th className="py-4 px-4 w-12 text-center">S/N</th>
                                                     <th className="py-4 px-4">Campaign ID</th>
                                                     <th className="py-4 px-4">Phone Book</th>
                                                     <th className="py-4 px-4">Type</th>
@@ -840,8 +937,15 @@ export default function MessagingCenterPage() {
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                                                {termiiCampaignsData.content.map((camp: any) => (
-                                                    <tr key={camp.campaign_id} className="text-sm font-medium hover:bg-slate-50/55 dark:hover:bg-slate-800/20">
+                                                {currentTermiiHistory.map((camp: any, idx: number) => (
+                                                    <tr 
+                                                        key={camp.campaign_id} 
+                                                        onClick={() => handleViewTermiiCampaignDetails(camp.campaign_id)}
+                                                        className="text-sm font-medium hover:bg-slate-50/55 dark:hover:bg-slate-800/20 cursor-pointer transition-colors"
+                                                    >
+                                                        <td className="py-4 px-4 text-center font-black text-slate-400 text-xs">
+                                                            {termiiHistoryStartIndex + idx + 1}
+                                                        </td>
                                                         <td className="py-4 px-4 font-mono font-bold text-slate-800 dark:text-slate-100">
                                                             {camp.campaign_id}
                                                         </td>
@@ -889,6 +993,35 @@ export default function MessagingCenterPage() {
                                             </tbody>
                                         </table>
                                     </div>
+                                    
+                                    {/* Pagination Controls */}
+                                    {termiiHistoryTotalPages > 1 && (
+                                        <div className="flex items-center justify-between pt-6 mt-4 border-t border-slate-100 dark:border-slate-800">
+                                            <span className="text-xs text-slate-500 font-bold">
+                                                Showing {termiiHistoryStartIndex + 1} to {Math.min(termiiHistoryStartIndex + historyItemsPerPage, termiiHistoryLogs.length)} of {termiiHistoryLogs.length} campaigns
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => setHistoryCurrentPage(prev => Math.max(prev - 1, 1))}
+                                                    disabled={historyCurrentPage === 1}
+                                                    className="px-3 py-1.5 text-xs font-black uppercase tracking-wider bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                                                >
+                                                    Prev
+                                                </button>
+                                                <span className="text-xs text-slate-600 dark:text-slate-400 font-black">
+                                                    Page {historyCurrentPage} of {termiiHistoryTotalPages}
+                                                </span>
+                                                <button
+                                                    onClick={() => setHistoryCurrentPage(prev => Math.min(prev + 1, termiiHistoryTotalPages))}
+                                                    disabled={historyCurrentPage === termiiHistoryTotalPages}
+                                                    className="px-3 py-1.5 text-xs font-black uppercase tracking-wider bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                                                >
+                                                    Next
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    </div>
                                 ) : (
                                     <div className="p-20 text-center">
                                         <div className="size-16 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -933,6 +1066,7 @@ export default function MessagingCenterPage() {
                                         <table className="w-full text-left border-collapse">
                                             <thead>
                                                 <tr className="border-b border-slate-100 dark:border-slate-800 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                                    <th className="py-4 px-4 w-12 text-center">S/N</th>
                                                     <th className="py-4 px-4">Recipient</th>
                                                     <th className="py-4 px-4">Message</th>
                                                     <th className="py-4 px-4">Channel</th>
@@ -950,6 +1084,9 @@ export default function MessagingCenterPage() {
                                                         onClick={() => setSelectedLog(log)}
                                                         className="text-sm font-medium hover:bg-slate-50/55 dark:hover:bg-slate-800/20 cursor-pointer transition-colors"
                                                     >
+                                                        <td className="py-4 px-4 text-center font-black text-slate-400 text-xs">
+                                                            {startIndex + idx + 1}
+                                                        </td>
                                                         <td className="py-4 px-4 font-bold text-slate-800 dark:text-slate-100">
                                                             {log.receiver}
                                                         </td>
@@ -1330,6 +1467,80 @@ export default function MessagingCenterPage() {
                                 className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-xl text-xs font-black uppercase tracking-widest cursor-pointer transition-colors"
                             >
                                 Close Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Popup Local Campaign Detail Modal */}
+            {selectedLocalCampaign && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-8 max-w-lg w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+                        <h4 className="text-lg font-black tracking-tight mb-6 flex items-center gap-2">
+                            <BarChart3 className="text-primary size-5" />
+                            Local Broadcast Details
+                        </h4>
+
+                        <div className="space-y-4 text-sm font-medium">
+                            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Campaign Title</span>
+                                <span className="font-bold text-slate-800 dark:text-white max-w-[250px] truncate text-right">
+                                    {selectedLocalCampaign.title}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Channel</span>
+                                <span className={`text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wider border ${
+                                    selectedLocalCampaign.channel === 'dnd' ? 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-800/40' :
+                                    selectedLocalCampaign.channel === 'whatsapp' ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-800/40' :
+                                    selectedLocalCampaign.channel === 'voice' ? 'bg-purple-50 text-purple-600 border-purple-100 dark:bg-purple-950/20 dark:text-purple-400 dark:border-purple-800/40' :
+                                    'bg-slate-50 text-slate-600 border-slate-100 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
+                                }`}>
+                                    {selectedLocalCampaign.channel}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Recipients</span>
+                                <span className="font-bold text-slate-800 dark:text-white">{selectedLocalCampaign.recipientsCount}</span>
+                            </div>
+
+                            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Estimated Cost</span>
+                                <span className="font-bold text-slate-800 dark:text-white">{selectedLocalCampaign.costUnits} Units</span>
+                            </div>
+
+                            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Status</span>
+                                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+                                    {selectedLocalCampaign.status === 'sent' ? <CheckCircle size={14} /> : <Clock size={14} />} 
+                                    <span className="capitalize">{selectedLocalCampaign.status}</span>
+                                </span>
+                            </div>
+
+                            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Sent At</span>
+                                <span className="text-xs text-slate-500">
+                                    {selectedLocalCampaign.sentAt ? format(new Date(selectedLocalCampaign.sentAt), 'dd MMM yyyy, h:mm a') : 'N/A'}
+                                </span>
+                            </div>
+
+                            <div className="pt-2">
+                                <span className="block text-xs text-slate-400 font-bold uppercase tracking-wider mb-2">Message Content</span>
+                                <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 font-mono text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-all max-h-36 overflow-y-auto">
+                                    {selectedLocalCampaign.message}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-8 flex justify-end">
+                            <button
+                                onClick={() => setSelectedLocalCampaign(null)}
+                                className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-xl text-xs font-black uppercase tracking-widest cursor-pointer transition-colors"
+                            >
+                                Close Preview
                             </button>
                         </div>
                     </div>

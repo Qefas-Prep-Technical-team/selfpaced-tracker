@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
       const regLink = courseSegment ? `${regBaseUrl}${courseSegment}` : regBaseUrl;
 
       // Updated to state: "selfpaced course" instead of "class"
-      const welcomeSms = `Hello ${parent}, welcome to Qefas! We see your interest in the ${selectedClass} selfpaced course. If you do not receive a call/message from us shortly, please register using ${regLink} or chat/call us on WhatsApp via https://wa.me/${contactWhatsapp}`;
+      const welcomeSms = `Hello ${parent}, welcome to Qefas Prep! We see your interest in the ${selectedClass} selfpaced course. If you do not receive a call/message from us shortly, please register using ${regLink} or chat/call us on WhatsApp via https://wa.me/${contactWhatsapp}`;
 
       const formattedRecipient = formatPhoneNumber(whatsappNum);
 
@@ -147,6 +147,9 @@ export async function POST(req: NextRequest) {
         successCount++;
         // Update inquiry status to contacted and push into contact history
         inquiry.status = "contacted";
+        if (!inquiry.contactHistory) {
+          inquiry.contactHistory = [];
+        }
         inquiry.contactHistory.push({
           contactedAt: new Date(),
           contactMethod: "sms",

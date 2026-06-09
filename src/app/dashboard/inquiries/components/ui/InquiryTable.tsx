@@ -35,6 +35,7 @@ export function InquiryTable({setIsModalOpen, setId}: {setIsModalOpen: Dispatch<
   // New Filter States
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedChannel, setSelectedChannel] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
@@ -54,7 +55,7 @@ export function InquiryTable({setIsModalOpen, setId}: {setIsModalOpen: Dispatch<
   // Reset to page 1 when other filters change
   useEffect(() => {
     setPage(1);
-  }, [selectedClass, selectedChannel, startDate, endDate]);
+  }, [selectedClass, selectedChannel, selectedStatus, startDate, endDate]);
 
   const userRole = (session?.user as any)?.role?.toUpperCase();
   const canEditOrDelete = userRole === "ADMIN" || userRole === "EDITOR";
@@ -69,9 +70,9 @@ export function InquiryTable({setIsModalOpen, setId}: {setIsModalOpen: Dispatch<
     }
   });
 
-  // 2. Updated Query: Added filters to queryKey and URL
+// 2. Updated Query: Added filters to queryKey and URL
 const { data, isLoading, isPlaceholderData } = useQuery({
-  queryKey: ["inquiries", page, debouncedSearch, selectedClass, selectedChannel, startDate, endDate],
+  queryKey: ["inquiries", page, debouncedSearch, selectedClass, selectedChannel, selectedStatus, startDate, endDate],
   queryFn: async () => {
     const params = new URLSearchParams({
         page: page.toString(),
@@ -79,6 +80,7 @@ const { data, isLoading, isPlaceholderData } = useQuery({
         search: debouncedSearch,
         childClass: selectedClass,
         channelName: selectedChannel,
+        status: selectedStatus,
         startDate: startDate,
         endDate: endDate,
     });
@@ -196,6 +198,24 @@ const { data, isLoading, isPlaceholderData } = useQuery({
                     {ch}
                     </DropdownMenuItem>
                 ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Status Filter */}
+          <div className="flex-1 sm:flex-none">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button variant="outline" icon={MessageCircle} iconPosition="left" className="w-full sm:w-auto text-[11px] sm:text-xs h-10">
+                    {selectedStatus ? selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1) : "Status"}
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-40">
+                    <DropdownMenuItem onClick={() => setSelectedStatus('')}>All Statuses</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSelectedStatus('new')}>New</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSelectedStatus('contacted')}>Contacted</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSelectedStatus('resolved')}>Resolved</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSelectedStatus('lost')}>Lost</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
           </div>

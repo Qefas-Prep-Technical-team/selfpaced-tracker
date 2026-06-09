@@ -89,6 +89,9 @@ export default function ParentInquiriesPage() {
       setCurrentIdx(i)
       setCurrentName(inquiry.parentName)
       
+      // Force React to repaint UI
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       try {
         const res = await fetch('/api/inquiries/bulk-welcome', {
           method: 'POST',
