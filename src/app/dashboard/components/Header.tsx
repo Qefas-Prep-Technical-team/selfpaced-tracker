@@ -9,7 +9,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         {/* Mobile Menu Toggle */}
         <button 
             onClick={onMenuClick}
-            className="md:hidden size-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-indigo-600 transition-colors"
+            className="size-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-indigo-600 transition-colors cursor-pointer shrink-0"
             aria-label="Toggle Menu"
         >
             <span className="material-symbols-outlined">menu</span>

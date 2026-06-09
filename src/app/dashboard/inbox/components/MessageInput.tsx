@@ -24,22 +24,44 @@ const MessageInput: FC<MessageInputProps> = ({ onSendMessage }) => {
         }
     }
 
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        const reader = new FileReader()
+        reader.onload = () => {
+            if (typeof reader.result === 'string') {
+                onSendMessage(reader.result)
+            }
+        }
+        reader.readAsDataURL(file)
+        
+        // Reset input value to allow choosing the same file again
+        e.target.value = ''
+    }
+
     return (
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md">
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
             <div className="flex items-end gap-3 max-w-full relative">
                 
                 {/* 1. Grouped Action Buttons (Left) */}
-                <div className="flex items-center gap-1 mb-1 shadow-sm bg-slate-100 dark:bg-slate-800 p-1 rounded-xl shrink-0 border border-slate-200 dark:border-slate-700">
+                <div className="flex items-center gap-1 mb-1 shadow-sm bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl shrink-0 border border-slate-200 dark:border-slate-800/80">
                     <button className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg text-slate-500 hover:text-primary transition-all duration-200 hover:shadow-sm">
                         <span className="material-symbols-outlined text-xl">add_circle</span>
                     </button>
-                    <button className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg text-slate-500 hover:text-emerald-500 transition-all duration-200 hover:shadow-sm">
+                    <label className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg text-slate-500 hover:text-emerald-500 transition-all duration-200 hover:shadow-sm cursor-pointer">
                         <span className="material-symbols-outlined text-xl">image</span>
-                    </button>
+                        <input 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={handleImageUpload} 
+                            className="hidden" 
+                        />
+                    </label>
                 </div>
-
+ 
                 {/* 2. Main Input Area (Center - Grows) */}
-                <div className="relative flex-1 flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 transition-all px-4 py-2 shadow-sm">
+                <div className="relative flex-1 flex flex-col bg-white dark:bg-slate-950/40 rounded-2xl border border-slate-200 dark:border-slate-800 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 transition-all px-4 py-2 shadow-sm">
                     <TextareaAutosize
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}

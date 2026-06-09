@@ -1,6 +1,12 @@
 // models/Inquiry.ts
 import mongoose, { Document, Model } from 'mongoose';
 
+export interface IContactHistory {
+  contactedAt: Date;
+  contactMethod: 'sms' | 'whatsapp' | 'call' | 'other';
+  message: string;
+}
+
 export interface IInquiry extends Document {
   parentName: string;
   parentNameNormalized: string;
@@ -9,6 +15,7 @@ export interface IInquiry extends Document {
   channelId: mongoose.Types.ObjectId;
   channelName: string;
   status: 'new' | 'contacted' | 'follow-up';
+  contactHistory: IContactHistory[];
   createdAt: Date;
 }
 
@@ -55,6 +62,17 @@ const InquirySchema = new mongoose.Schema<IInquiry>({
     type: String,
     enum: ['new', 'contacted', 'follow-up'],
     default: 'new',
+  },
+
+  contactHistory: {
+    type: [
+      {
+        contactedAt: { type: Date, default: Date.now },
+        contactMethod: { type: String, enum: ['sms', 'whatsapp', 'call', 'other'], required: true },
+        message: { type: String, default: '' },
+      }
+    ],
+    default: []
   },
 
   createdAt: {

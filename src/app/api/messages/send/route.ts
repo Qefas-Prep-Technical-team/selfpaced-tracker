@@ -37,6 +37,7 @@ export async function POST(req: Request) {
     await convo.save();
 
     await pusher.trigger(`chat-${conversationId}`, "new-message", humanMessage);
+    await pusher.trigger(`chat-updates`, "new-message", { sender: "human", conversationId });
 
     return NextResponse.json({ success: true });
   } catch (error) {

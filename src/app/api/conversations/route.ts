@@ -47,3 +47,55 @@ export async function GET() {
     );
   }
 }
+
+export async function POST(req: Request) {
+  try {
+    const { phoneNumber, name, email } = await req.json();
+    if (!phoneNumber) {
+      return NextResponse.json({ error: "Phone number is required" }, { status: 400 });
+    }
+
+    await dbConnect();
+
+    // Check if conversation already exists
+    let convo = await Conversation.findOne({ phoneNumber });
+    if (convo) {
+      return NextResponse.json({ 
+        id: convo._id.toString(), 
+        name: convo.name,
+        email: convo.email,
+        status: "online",
+        lastMessage: convo.messages[convo.messages.length - 1]?.body || "No messages yet",
+        lastSeen: "Just now",
+        isNew: false
+      });
+    }
+
+    // Create a new conversation
+    convo = await Conversation.create({
+      phoneNumber,
+      name: name || "New Lead",
+      email: email || "",
+      status: "human",
+      messages: [],
+      lastMessageAt: new Date(),
+      isSubscribedToNewsletter: false
+    });
+
+    return NextResponse.json({
+      id: convo._id.toString(),
+      name: convo.name,
+      email: convo.email,
+      status: "online",
+      lastMessage: "No messages yet",
+      lastSeen: "Just now",
+      isNew: true
+    }, { status: 201 });
+  } catch (error) {
+    console.error("POST conversation failed:", error);
+    return NextResponse.json(
+      { error: "Failed to create conversation" },
+      { status: 500 }
+    );
+  }
+}

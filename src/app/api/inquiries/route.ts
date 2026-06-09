@@ -4,6 +4,22 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Inquiry from "@/models/Inquiry";
 import { Channel } from "@/models/Channel";
+import Campaign from "@/models/Campaign";
+
+// Helper to format Nigerian phone numbers to Termii format: 2348030000000
+function formatPhoneNumber(num: string): string {
+  let clean = num.replace(/\D/g, "");
+  if (clean.startsWith("0") && clean.length === 11) {
+    clean = "234" + clean.slice(1);
+  }
+  if (clean.startsWith("234") && clean.length === 13) {
+    return clean;
+  }
+  if (!clean.startsWith("234") && clean.length === 10) {
+    clean = "234" + clean;
+  }
+  return clean;
+}
 
 // Define headers clearly
 const corsHeaders = {
@@ -23,31 +39,28 @@ export async function POST(req: NextRequest) {
     await dbConnect();
     const body = await req.json();
 
-    const { parentName, childClass, whatsapp, channelId, channelName } = body;
-    // console.log( parentName, childClass, whatsapp, channelId, channelName)
+    let { parentName, childClass, whatsapp, channelId, channelName } = body;
 
-    if (!parentName || !whatsapp || !channelId || !channelName) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 },
-      );
-    }
+    // Resolve channelName from channelId if it is not provided
     if (channelId && !channelName) {
       const channel = await Channel.findById(channelId);
-      if (channel) body.channelName = channel.name;
+      if (channel) {
+        channelName = channel.name;
+      }
     }
-    // 1. Strict Validation
-    if (!parentName || parentName.length > 50) {
+
+    // 1. Basic validation
+    if (!parentName || !whatsapp || !channelId || !channelName || !childClass) {
       return NextResponse.json(
-        { error: "Invalid Name" },
+        { error: "Missing required fields" },
         { status: 400, headers: corsHeaders },
       );
     }
 
-    // 1. Basic validation
-    if (!parentName || !whatsapp || !channelId || !channelName) {
+    // 2. Strict Validation
+    if (parentName.length > 50) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Invalid Name" },
         { status: 400, headers: corsHeaders },
       );
     }
@@ -96,6 +109,72 @@ export async function POST(req: NextRequest) {
     await Channel.findByIdAndUpdate(channelId, {
       $inc: { leads: 1 },
     });
+
+    // 5. Send Welcome SMS immediately after signup
+    const parent = parentName.trim();
+    const selectedClass = childClass.trim();
+
+    // Normalize childClass string to match the env course keys
+    const normClass = selectedClass.toLowerCase().replace(/[^a-z0-9]/g, "");
+    let courseKey = "";
+    if (normClass.includes("jss1")) courseKey = "JSS1";
+    else if (normClass.includes("jss2")) courseKey = "JSS2";
+    else if (normClass.includes("jss3")) courseKey = "JSS3";
+    else if (normClass.includes("sss1")) courseKey = "SSS1";
+    else if (normClass.includes("sss2")) courseKey = "SSS2";
+    else if (normClass.includes("sss3")) courseKey = "SSS3";
+
+    const courseSegment = courseKey 
+        ? (process.env[`COURSE_MAP_${courseKey}`] || "") 
+        : "";
+    const regBaseUrl = process.env.COURSE_REGISTRATION_BASE_URL || "https://qefas.com/";
+    const regLink = courseSegment ? `${regBaseUrl}${courseSegment}` : regBaseUrl;
+
+    const contactWhatsapp = process.env.CONTACT_WHATSAPP_NUMBER || "2347065250817";
+
+    const welcomeSms = `Hello ${parent}, welcome to Qefas! We see your interest in the ${selectedClass} class. If you do not receive a call/message from us shortly, please register using ${regLink} or chat/call us on WhatsApp via https://wa.me/${contactWhatsapp}`;
+
+    // Format recipient phone number
+    const formattedRecipient = formatPhoneNumber(whatsapp);
+    
+    // Termii variables
+    const apiKey = process.env.TERMII_API_KEY;
+    const senderId = process.env.TERMII_SENDER_ID || "Qefas";
+    const baseUrl = process.env.TERMII_BASE_URL || "https://api.ng.termii.com";
+
+    if (apiKey && formattedRecipient) {
+      const payload = {
+        api_key: apiKey,
+        to: formattedRecipient,
+        from: senderId,
+        sms: welcomeSms,
+        type: "plain",
+        channel: "generic"
+      };
+
+      try {
+        const response = await fetch(`${baseUrl}/api/sms/send`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const resData = await response.json();
+        
+        // Log welcome SMS as a Campaign in our DB history for full tracking visibility
+        await Campaign.create({
+          title: `Welcome SMS - ${parent}`,
+          channel: "generic",
+          message: welcomeSms,
+          recipientsCount: 1,
+          recipients: [formattedRecipient],
+          status: resData?.code === "ok" ? "sent" : "failed",
+          costUnits: 1,
+          termiiResponse: resData
+        });
+      } catch (smsError) {
+        console.error("Failed to send welcome SMS via Termii:", smsError);
+      }
+    }
 
     return NextResponse.json(
       { success: true, inquiry },

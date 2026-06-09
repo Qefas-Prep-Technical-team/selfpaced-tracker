@@ -8,11 +8,12 @@ interface ChatHeaderProps {
     status: string;
     avatar: string;
     conversationId: string;
+    onEditClick?: () => void;
     onBack?: () => void;
     onShowDetails?: () => void;
 }
 
-const ChatHeader: FC<ChatHeaderProps> = ({ name, status, avatar, conversationId, onBack, onShowDetails }) => {
+const ChatHeader: FC<ChatHeaderProps> = ({ name, status, avatar, conversationId, onEditClick, onBack, onShowDetails }) => {
     const queryClient = useQueryClient();
 
     const handleToggle = async (newMode: string) => {
@@ -21,6 +22,7 @@ const ChatHeader: FC<ChatHeaderProps> = ({ name, status, avatar, conversationId,
             ...old,
             status: newMode === 'ai' ? 'bot' : 'human'
         }));
+        queryClient.invalidateQueries({ queryKey: ['leads'] });
 
         await fetch(`/api/conversations/${conversationId}/toggle`, {
             method: 'POST',
@@ -29,7 +31,7 @@ const ChatHeader: FC<ChatHeaderProps> = ({ name, status, avatar, conversationId,
     };
 
     return (
-        <div className="h-16 md:h-20 px-4 md:px-6 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background/80 backdrop-blur-md flex items-center justify-between sticky top-0 z-10 w-full">
+        <div className="h-16 md:h-20 px-4 md:px-6 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background/80 backdrop-blur-md flex items-center justify-between sticky top-0 z-20 w-full shrink-0">
             <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
                 {/* Mobile Back Button */}
                 <button 
@@ -43,7 +45,7 @@ const ChatHeader: FC<ChatHeaderProps> = ({ name, status, avatar, conversationId,
                 <div className="relative shrink-0 hidden sm:block">
                     <div className="h-10 w-10 rounded-full overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800 shadow-sm">
                         <img 
-                            src={avatar || "https://ui-avatars.com/api/?name=" + name} 
+                            src={avatar || "https://ui-avatars.com/api/?name=" + encodeURIComponent(name)} 
                             className="h-full w-full object-cover" 
                             alt={name} 
                         />
@@ -87,7 +89,12 @@ const ChatHeader: FC<ChatHeaderProps> = ({ name, status, avatar, conversationId,
 
                 <div className="hidden md:block h-8 w-px bg-slate-200 dark:bg-slate-800" />
                 
-                <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 transition-colors hidden md:block">
+                {/* Three-dot button opens edit details modal */}
+                <button 
+                    onClick={onEditClick}
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 transition-colors hidden md:block cursor-pointer"
+                    title="Edit Contact"
+                >
                     <span className="material-symbols-outlined">more_vert</span>
                 </button>
             </div>

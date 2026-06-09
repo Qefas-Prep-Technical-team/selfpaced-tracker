@@ -156,6 +156,7 @@ export async function POST(req: NextRequest) {
       body: userMsg,
       sender: "user",
     });
+    await pusher.trigger("chat-updates", "new-message", { sender: "user", conversationId: convo._id.toString() });
 
     if (convo.status === "human") {
       return new Response("<Response></Response>", {
@@ -278,6 +279,7 @@ RULES:
               body: aiReply,
               sender: "bot",
             });
+            await pusher.trigger("chat-updates", "new-message", { sender: "bot", conversationId: convo._id.toString() });
 
             const twiml = new twilio.twiml.MessagingResponse();
             twiml.message(aiReply);
@@ -353,6 +355,12 @@ RULES:
       convo.lastButtonSent = buttonKeyUsed;
       await convo.save();
 
+      await pusher.trigger(channel, "new-message", {
+        body: cleanReply,
+        sender: "bot",
+      });
+      await pusher.trigger("chat-updates", "new-message", { sender: "bot", conversationId: convo._id.toString() });
+
       return new Response("<Response></Response>", {
         headers: { "Content-Type": "text/xml" },
       });
@@ -365,6 +373,12 @@ RULES:
       timestamp: new Date(),
     });
     await convo.save();
+
+    await pusher.trigger(channel, "new-message", {
+      body: cleanReply,
+      sender: "bot",
+    });
+    await pusher.trigger("chat-updates", "new-message", { sender: "bot", conversationId: convo._id.toString() });
 
     const twiml = new twilio.twiml.MessagingResponse();
     twiml.message(cleanReply);

@@ -47,6 +47,14 @@
   --sidebar-ring: oklch(0.708 0 0);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
+
+  /* Surface & background variables for dashboard components */
+  --surface-card: oklch(1 0 0);
+  --surface-light: oklch(0.922 0 0);
+  --surface-dark: oklch(0.97 0 0);
+  --text-secondary: oklch(0.556 0 0);
+  --background-light: oklch(0.97 0 0);
+  --background-dark: oklch(0.145 0 0);
 }
 
 .dark {
@@ -84,6 +92,14 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* Surface & background variables for dashboard components */
+  --surface-card: oklch(0.205 0 0);
+  --surface-light: oklch(1 0 0 / 10%);
+  --surface-dark: oklch(0.269 0 0);
+  --text-secondary: oklch(0.708 0 0);
+  --background-light: oklch(0.269 0 0);
+  --background-dark: oklch(0.145 0 0);
 }
 
 body {
@@ -138,8 +154,15 @@ body {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-text-primary: var(--foreground);
-  --color-text-secondary: oklch(0.556 0 0);
+  --color-text-secondary: var(--text-secondary);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-surface-card: var(--surface-card);
+  --color-surface-light: var(--surface-light);
+  --color-surface-dark: var(--surface-dark);
+
+  --color-background-light: var(--background-light);
+  --color-background-dark: var(--background-dark);
 }
 
 @layer base {

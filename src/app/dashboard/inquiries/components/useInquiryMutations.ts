@@ -1,5 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
+export interface ContactHistoryItem {
+  contactedAt: string
+  contactMethod: "sms" | "whatsapp" | "call" | "other"
+  message: string
+}
+
 export interface Inquiry {
   _id: string
   id: string
@@ -8,13 +14,19 @@ export interface Inquiry {
   whatsapp: string
   channelId?: string
   channelName?: string
-  status: "new" | "contacted" | "followup"
+  status: "new" | "contacted" | "follow-up" | "followup"
+  contactHistory?: ContactHistoryItem[]
   createdAt: string
 }
 
 interface UpdateInquiryPayload {
   id: string
-  data: Partial<Omit<Inquiry, 'id' | 'createdAt'>>
+  data: Partial<Omit<Inquiry, 'id' | 'createdAt'>> & {
+    contactHistoryItem?: {
+      contactMethod: "sms" | "whatsapp" | "call" | "other"
+      message: string
+    }
+  }
 }
 
 export function useInquiryMutations() {

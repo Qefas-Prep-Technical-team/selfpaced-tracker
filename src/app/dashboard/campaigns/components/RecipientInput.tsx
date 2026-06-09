@@ -15,8 +15,8 @@ export const RecipientInput: React.FC<RecipientInputProps> = ({
     placeholder = 'Enter phone numbers separated by commas (e.g., 08030000000, +234810...)',
 }) => {
     const [value, setValue] = useState(initialValue);
-    const [validCount, setValidCount] = useState(42);
-    const [invalidCount, setInvalidCount] = useState(1);
+    const [validCount, setValidCount] = useState(0);
+    const [invalidCount, setInvalidCount] = useState(0);
 
     const validatePhoneNumbers = (text: string) => {
         const numbers = text

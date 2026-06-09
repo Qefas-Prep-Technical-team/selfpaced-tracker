@@ -11,6 +11,7 @@ interface StatCardProps {
   progressColor?: string
   icon?: ReactNode
   className?: string
+  description?: string
 }
 
 export function StatCard({
@@ -21,7 +22,8 @@ export function StatCard({
   progress,
   progressColor = 'bg-slate-400',
   icon,
-  className
+  className,
+  description
 }: StatCardProps) {
   const changeColors = {
     positive: 'text-emerald-500',
@@ -63,6 +65,12 @@ export function StatCard({
             style={{ width: `${progress}%` }}
           />
         </div>
+      )}
+
+      {description && (
+        <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 font-medium">
+          {description}
+        </p>
       )}
     </div>
   )

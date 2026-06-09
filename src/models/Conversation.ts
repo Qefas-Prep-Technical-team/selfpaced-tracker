@@ -11,6 +11,7 @@ export interface IMessage {
 export interface IConversation extends Document {
   phoneNumber: string;
   name: string;
+  email?: string;
   status: "bot" | "human";
   messages: IMessage[];
   lastMessageAt: Date;
@@ -28,6 +29,7 @@ const ConversationSchema = new Schema<IConversation>(
   {
     phoneNumber: { type: String, required: true, unique: true },
     name: { type: String, default: "New Lead" },
+    email: { type: String, default: "" },
     status: { type: String, enum: ["bot", "human"], default: "bot" },
     messages: [MessageSchema],
     lastMessageAt: { type: Date, default: Date.now },

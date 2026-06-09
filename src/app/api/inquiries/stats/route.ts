@@ -52,17 +52,18 @@ const stats = await Inquiry.aggregate([
 ])
 
 const normalize = (data: any[]) => {
-  const base:any = {
+  const base: any = {
     total: 0,
     new: 0,
     contacted: 0,
     followup: 0
   }
 
-  data.forEach((item:any) => {
+  data.forEach((item: any) => {
     base.total += item.count
-    if (item._id in base) {
-      base[item._id] = item.count
+    const key = item._id === "follow-up" ? "followup" : item._id;
+    if (key in base) {
+      base[key] = item.count
     }
   })
 
@@ -73,7 +74,7 @@ const current = normalize(stats[0].currentMonth)
 const previous = normalize(stats[0].previousMonth)
 
 const calculateChange = (current: number, previous: number) => {
-  if (previous === 0) return 100
+  if (previous === 0) return current > 0 ? 100 : 0
   return Number((((current - previous) / previous) * 100).toFixed(2))
 }
 

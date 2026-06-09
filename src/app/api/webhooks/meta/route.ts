@@ -122,6 +122,7 @@ export async function POST(req: NextRequest) {
       body: userMsg,
       sender: "user",
     });
+    await pusher.trigger("chat-updates", "new-message", { sender: "user", conversationId: convo._id.toString() });
 
     if (convo.status === "human") {
       return Response.json({ ok: true });
@@ -146,6 +147,7 @@ export async function POST(req: NextRequest) {
           body: ai.reply,
           sender: "bot",
         });
+        await pusher.trigger("chat-updates", "new-message", { sender: "bot", conversationId: convo._id.toString() });
         await sendMetaText(from, ai.reply);
       }
 
@@ -159,6 +161,7 @@ export async function POST(req: NextRequest) {
           body: ai.reply,
           sender: "bot",
         });
+        await pusher.trigger("chat-updates", "new-message", { sender: "bot", conversationId: convo._id.toString() });
         await sendMetaText(from, ai.reply);
       }
 
@@ -174,6 +177,7 @@ export async function POST(req: NextRequest) {
           body: ai.reply,
           sender: "bot",
         });
+        await pusher.trigger("chat-updates", "new-message", { sender: "bot", conversationId: convo._id.toString() });
         await sendMetaText(from, ai.reply);
       }
 
@@ -188,6 +192,7 @@ export async function POST(req: NextRequest) {
       body: ai.reply,
       sender: "bot",
     });
+    await pusher.trigger("chat-updates", "new-message", { sender: "bot", conversationId: convo._id.toString() });
 
     await updateLastInteractiveSent(convo, null);
     await sendMetaText(from, ai.reply);

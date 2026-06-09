@@ -57,7 +57,7 @@ export async function PATCH(
     await dbConnect();
     const body = await req.json();
 
-    const { parentName, childClass, whatsapp, channelId, channelName, status } =
+    const { parentName, childClass, whatsapp, channelId, channelName, status, contactHistoryItem } =
       body;
 
     const inquiry = await Inquiry.findById(id);
@@ -75,6 +75,18 @@ export async function PATCH(
     if (whatsapp) inquiry.whatsapp = whatsapp.trim();
     if (childClass) inquiry.childClass = childClass;
     if (status) inquiry.status = status;
+
+    if (contactHistoryItem) {
+      inquiry.status = "contacted";
+      if (!inquiry.contactHistory) {
+        inquiry.contactHistory = [];
+      }
+      inquiry.contactHistory.push({
+        contactedAt: new Date(),
+        contactMethod: contactHistoryItem.contactMethod,
+        message: contactHistoryItem.message || "",
+      });
+    }
 
     if (channelId && channelId !== inquiry.channelId.toString()) {
       await Channel.findByIdAndUpdate(inquiry.channelId, {

@@ -33,10 +33,13 @@ const MessageBubble: FC<MessageBubbleProps> = ({ message }) => {
             {/* Avatar Logic */}
             <div className="shrink-0 mb-1">
                 {isUser ? (
-                    <div
-                        className="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-8 w-8 ring-2 ring-white dark:ring-slate-900 shadow-sm"
-                        style={{ backgroundImage: message.avatar ? `url(${message.avatar})` : undefined }}
-                    />
+                    <div className="h-8 w-8 rounded-full overflow-hidden ring-2 ring-white dark:ring-slate-900 shadow-sm">
+                        <img 
+                            src={message.avatar || `https://ui-avatars.com/api/?name=User&background=random`} 
+                            className="h-full w-full object-cover" 
+                            alt="User" 
+                        />
+                    </div>
                 ) : (
                     <div className={`flex items-center justify-center h-8 w-8 rounded-full text-white shadow-md transition-transform group-hover:scale-110 ${isAI ? 'bg-gradient-to-br from-indigo-500 to-purple-600' : 'bg-gradient-to-br from-slate-700 to-slate-900'}`}>
                         <span className="material-symbols-outlined text-[18px]">
@@ -65,7 +68,13 @@ const MessageBubble: FC<MessageBubbleProps> = ({ message }) => {
                             {isAI ? 'Qefas Assistant' : 'Support Specialist'}
                         </div>
                     )}
-                    <span className="block whitespace-pre-wrap">{message.content}</span>
+                    {message.content.startsWith('data:image/') || message.content.match(/^https?:\/\/.*\.(png|jpg|jpeg|gif|webp|svg)/i) ? (
+                        <div className="rounded-xl overflow-hidden max-w-xs my-1 border border-slate-100 dark:border-slate-800/80">
+                            <img src={message.content} className="max-w-full h-auto object-cover max-h-60" alt="Sent Media" />
+                        </div>
+                    ) : (
+                        <span className="block whitespace-pre-wrap">{message.content}</span>
+                    )}
                 </div>
 
                 <div className={`flex items-center gap-2 text-[10px] text-slate-400 font-medium ${isUser ? 'ml-1' : 'mr-1 flex-row-reverse'}`}>

@@ -1,49 +1,31 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import ConversationList from './ConversationList'
 import ChatWindow from './ChatWindow'
 import ContactPanel from './ContactPanel'
 
-interface Contact {
-    id: string
-    name: string
-    email: string
-    avatar: string
-    status: 'online' | 'offline' | 'away'
-    role?: string
-}
-
 export default function ChatLayout() {
-    const [selectedContact, setSelectedContact] = useState<string>('sarah-jenkins')
+    const [selectedContact, setSelectedContact] = useState<string | null>(null)
     const [activeView, setActiveView] = useState<'list' | 'chat' | 'details'>('list')
 
-    const contacts: Contact[] = [
-        {
-            id: 'sarah-jenkins',
-            name: 'Sarah Jenkins',
-            email: 's.jenkins@webflow.com',
-            avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAw12fLH6vo-0HG9SDmUkycLScJiQbyW-2Ztq5ZPY_1o206JeVN77WP0rxd-3xMZESm_E5YaoeizU2XCXtVKBrtLKMra0iqLK-B7uuQG3gLM2TRXZJ3mhvUbXsjr8CIyQPbup1R_vXaSh5ji5Bfz8eOMxDsaYMe08v2Y-MhZP5mj5sMeoc7Y8KB_CXhqDFFIxREA2niJwkMuuuooCfgvUgA-CR3NyUjuByyjppXXVl18ZEbzbM8djl89iTsXxST5T8cjYntkgwZM0o',
-            status: 'online',
-            role: 'Operations Manager @ WebFlow',
-        },
-        {
-            id: 'mark-zuckerberg',
-            name: 'Mark Zuckerberg',
-            email: 'mark@meta.com',
-            avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBnI9G9obcjbKzy0_EO-tk9OMrUpRVhBt9rZyXoPSGRW1dwIePCgK2Q1vVtqNtybePf-OOp9qlSYXVcP9ON-tBbYnpdrPe3EluTnFD8LXbhJjrwriWcRf4u6sJZvRkM8vUZ7_1JrfK-0Nq1xM2bHMWb6hLEedmNmmp0qEdgMBbi37vpjpLK803tZZVp4tU8c2WTEmu3Z26m-EeeAee673Wu7e2V5yRcB_ctl4F9EoteJk2HxFQ12tIRPk5BuRCtT6DdmoYchblEyQI',
-            status: 'online',
-        },
-        {
-            id: 'jessica-chen',
-            name: 'Jessica Chen',
-            email: 'jessica@startup.com',
-            avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAvSpnvwvnO5RSN50lZwjAo3T2HfQie6rkOyG_psG9Rcd9iZ9CRYbZyOE2Y_e92oBZ75MZPI-2Zo5Lx2mCORpQf4En1UG1cBiQ8aD7u6clqybF4jY_4lmSISbAzWE1zOmaKnFNYR9PR7JjUI9UuRrePUkOOaUNkJqm57fUg9TmawyF15oZXYvrkpa6QFWvhbskS39QgM9R0N1-WTL7w9VOA8MZ1Y_u7PSdqZnEg5YqFHGz64p2FjO52iAXxRkPH3KCKFy0QQtpIMh0',
-            status: 'away',
-        },
-    ]
+    // Fetch conversations list for default selection and responsive layout sync
+    const { data: conversations } = useQuery<any[]>({
+        queryKey: ["leads"],
+        queryFn: async () => {
+            const res = await fetch('/api/conversations')
+            if (!res.ok) throw new Error('Failed to fetch conversations')
+            return res.json()
+        }
+    })
 
-    const selectedContactData = contacts.find(c => c.id === selectedContact)
+    // Automatically select the first conversation once loaded
+    useEffect(() => {
+        if (!selectedContact && conversations && conversations.length > 0) {
+            setSelectedContact(conversations[0].id)
+        }
+    }, [conversations, selectedContact])
 
     const handleSelectContact = (id: string) => {
         setSelectedContact(id)
@@ -51,15 +33,14 @@ export default function ChatLayout() {
     }
 
     return (
-        <main className="flex flex-1 overflow-hidden relative">
+        <main className="flex flex-1 overflow-hidden relative bg-slate-50/50 dark:bg-background">
             {/* Conversation List */}
             <div className={`
                 absolute inset-0 z-10 bg-background transition-transform duration-300 md:relative md:translate-x-0 md:flex md:z-auto md:w-85
                 ${activeView === 'list' ? 'translate-x-0' : '-translate-x-full'}
             `}>
                 <ConversationList
-                    contacts={contacts}
-                    selectedContact={selectedContact}
+                    selectedContact={selectedContact || ''}
                     onSelectContact={handleSelectContact}
                 />
             </div>
@@ -69,11 +50,18 @@ export default function ChatLayout() {
                 absolute inset-0 z-20 bg-background transition-transform duration-300 md:relative md:translate-x-0 md:flex md:z-auto md:flex-1
                 ${activeView === 'chat' ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
             `}>
-                <ChatWindow 
-                    contactId={selectedContact} 
-                    onBack={() => setActiveView('list')}
-                    onShowDetails={() => setActiveView('details')}
-                />
+                {selectedContact ? (
+                    <ChatWindow 
+                        contactId={selectedContact} 
+                        onBack={() => setActiveView('list')}
+                        onShowDetails={() => setActiveView('details')}
+                    />
+                ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/30 text-slate-400 gap-2">
+                        <span className="material-symbols-outlined text-4xl animate-bounce">forum</span>
+                        <p className="text-sm font-semibold">Select a lead to start chatting</p>
+                    </div>
+                )}
             </div>
 
             {/* Contact Info Panel */}
@@ -81,11 +69,16 @@ export default function ChatLayout() {
                 absolute inset-0 z-30 bg-background transition-transform duration-300 md:relative md:translate-x-0 md:flex md:z-auto md:w-80
                 ${activeView === 'details' ? 'translate-x-0' : 'translate-x-full md:translate-x-0 md:hidden lg:flex'}
             `}>
-                {selectedContactData && (
+                {selectedContact ? (
                     <ContactPanel 
-                        contact={selectedContactData as any}
+                        contactId={selectedContact}
                         onBack={() => setActiveView('chat')}
                     />
+                ) : (
+                    <div className="w-full border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-background flex flex-col items-center justify-center p-6 text-slate-400">
+                        <span className="material-symbols-outlined text-4xl mb-2">person_off</span>
+                        <p className="text-sm font-medium">No details available</p>
+                    </div>
                 )}
             </div>
         </main>

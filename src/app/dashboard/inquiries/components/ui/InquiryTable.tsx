@@ -249,6 +249,7 @@ const { data, isLoading, isPlaceholderData } = useQuery({
               <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5 hidden sm:table-cell">WhatsApp</th>
               <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5 hidden lg:table-cell">Child Class</th>
               <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5 hidden md:table-cell">Source Channel</th>
+              <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5 hidden md:table-cell">Date</th>
               <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5">Status</th>
               <th className="px-6 py-5 border-b border-slate-100 dark:border-white/5 text-right">Actions</th>
             </tr>
@@ -274,7 +275,14 @@ const { data, isLoading, isPlaceholderData } = useQuery({
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-600 dark:text-slate-400 hidden sm:table-cell">{inquiry.phone || inquiry.whatsapp}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-600 dark:text-slate-400 hidden sm:table-cell">
+                  <span
+                    onClick={() => handleView(inquiry)}
+                    className="cursor-pointer hover:text-primary transition-colors hover:underline"
+                  >
+                    {inquiry.phone || inquiry.whatsapp}
+                  </span>
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-500 dark:text-slate-400 hidden lg:table-cell">
                     <span className="bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded-md text-[10px] uppercase">
                         {inquiry.childClass}
@@ -287,6 +295,9 @@ const { data, isLoading, isPlaceholderData } = useQuery({
                       </div>
                       <span className="font-medium text-slate-600 dark:text-slate-400">{inquiry.channelName}</span>
                    </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-600 dark:text-slate-400 hidden md:table-cell">
+                  {formatDate(inquiry.createdAt)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <StatusBadge status={inquiry.status}>{inquiry.status}</StatusBadge>

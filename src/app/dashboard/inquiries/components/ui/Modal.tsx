@@ -72,21 +72,21 @@ export function Modal({
             >
               <HeadlessDialog.Panel
                 className={cn(
-                  "w-full transform overflow-hidden rounded-xl bg-white dark:bg-surface-card shadow-2xl transition-all",
+                  "w-full transform overflow-hidden rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-2xl transition-all",
                   sizes[size],
                   className
                 )}
               >
                 {(title || showCloseButton) && (
-                  <div className="border-b border-surface-light dark:border-surface-dark p-6">
+                  <div className="border-b border-slate-200 dark:border-white/10 p-6">
                     <div className="flex items-center justify-between">
                       {title && (
                         <div>
-                          <HeadlessDialog.Title className="text-2xl font-bold text-text-primary dark:text-white tracking-[-0.033em]">
+                          <HeadlessDialog.Title className="text-2xl font-bold text-slate-900 dark:text-white tracking-[-0.033em]">
                             {title}
                           </HeadlessDialog.Title>
                           {subtitle && (
-                            <HeadlessDialog.Description className="text-text-secondary text-sm mt-1">
+                            <HeadlessDialog.Description className="text-slate-500 dark:text-slate-400 text-sm mt-1">
                               {subtitle}
                             </HeadlessDialog.Description>
                           )}
@@ -95,7 +95,7 @@ export function Modal({
                       {showCloseButton && (
                         <button
                           onClick={onClose}
-                          className="text-text-secondary hover:text-text-primary dark:hover:text-white transition-colors cursor-pointer "
+                          className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors cursor-pointer"
                         >
                           <X size={20} />
                         </button>
@@ -107,7 +107,7 @@ export function Modal({
                 <div className="p-6">{children}</div>
 
                 {footer && (
-                  <div className="border-t border-surface-light dark:border-surface-dark p-6">
+                  <div className="border-t border-slate-200 dark:border-white/10 p-6">
                     {footer}
                   </div>
                 )}

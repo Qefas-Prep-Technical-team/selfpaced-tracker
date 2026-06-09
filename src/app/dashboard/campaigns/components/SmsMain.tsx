@@ -1,26 +1,101 @@
-import React, { FC, useState } from 'react';
+import React, { FC } from 'react';
 import { SMSConfigCard } from './SMSConfigCard';
 import { RecipientInput } from './RecipientInput';
 import { SMSComposer } from './SMSComposer';
 import { SandboxMode } from './SandboxMode';
+import { Radio, Smartphone } from 'lucide-react';
 
+interface SenderIdItem {
+    sender_id: string;
+    status: 'active' | 'pending' | 'blocked';
+    country?: string;
+    company?: string;
+    usecase?: string;
+}
 
-
-import { Send, Users, Radio, Smartphone, Layout } from 'lucide-react';
-
-const SmsMain = () => {
-    const [selectedRoute, setSelectedRoute] = useState('corporate');
-    const [message, setMessage] = useState('');
-    const [recipients, setRecipients] = useState<string[]>([]);
-    const [isSending, setIsSending] = useState(false);
-    const [sandboxEnabled, setSandboxEnabled] = useState(false);
-
-    const handleSendBroadcast = async () => {
-        setIsSending(true);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        console.log('Broadcast sent:', { message, recipients });
-        setIsSending(false);
+interface SmsMainProps {
+    selectedRoute: string;
+    onRouteSelect: (route: string) => void;
+    message: string;
+    onMessageChange: (msg: string) => void;
+    recipients: string[];
+    onRecipientsChange: (recipients: string[]) => void;
+    sandboxEnabled: boolean;
+    onSandboxToggle: (enabled: boolean) => void;
+    onSendTest: (phoneNumber: string) => void;
+    balance?: number;
+    currency?: string;
+    accountUser?: string;
+    prices?: {
+        dnd: string;
+        generic: string;
+        whatsapp: string;
+        voice: string;
     };
+    senderIds?: SenderIdItem[];
+    selectedSenderId?: string;
+    onSenderIdSelect?: (senderId: string) => void;
+    onRefreshSenderIds?: () => void;
+}
+
+const SmsMain: FC<SmsMainProps> = ({
+    selectedRoute,
+    onRouteSelect,
+    message,
+    onMessageChange,
+    recipients,
+    onRecipientsChange,
+    sandboxEnabled,
+    onSandboxToggle,
+    onSendTest,
+    balance = 0.00,
+    currency = 'NGN',
+    accountUser = 'Termii Account',
+    prices = {
+        dnd: '12.00',
+        generic: '4.00',
+        whatsapp: '20.00',
+        voice: '25.00'
+    },
+    senderIds = [],
+    selectedSenderId = '',
+    onSenderIdSelect,
+    onRefreshSenderIds,
+}) => {
+    // Dynamically build delivery routes with pricing from environmental options
+    const deliveryRoutes = [
+        {
+            id: 'dnd',
+            name: 'DND (Transactional)',
+            description: 'Bypasses DND restrictions',
+            price: `₦${Number(prices.dnd).toFixed(2)}`,
+            priceUnit: '/unit',
+            recommended: true,
+        },
+        {
+            id: 'generic',
+            name: 'Generic (Promotional)',
+            description: 'Subject to DND limitations',
+            price: `₦${Number(prices.generic).toFixed(2)}`,
+            priceUnit: '/unit',
+        },
+        {
+            id: 'whatsapp',
+            name: 'WhatsApp (Conversational)',
+            description: 'Delivered via WhatsApp API',
+            price: `₦${Number(prices.whatsapp).toFixed(2)}`,
+            priceUnit: '/unit',
+        },
+        {
+            id: 'voice',
+            name: 'Voice Call (TTS)',
+            description: 'Automated text-to-speech call',
+            price: `₦${Number(prices.voice).toFixed(2)}`,
+            priceUnit: '/unit',
+        },
+    ];
+
+    const activeRoutePrice = Number(prices[selectedRoute as keyof typeof prices] || '12');
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
@@ -35,12 +110,20 @@ const SmsMain = () => {
 
                 <SMSConfigCard
                     selectedRoute={selectedRoute}
-                    onRouteSelect={setSelectedRoute}
+                    onRouteSelect={onRouteSelect}
+                    balance={balance}
+                    currency={currency}
+                    accountUser={accountUser}
+                    deliveryRoutes={deliveryRoutes}
+                    senderIds={senderIds}
+                    selectedSenderId={selectedSenderId}
+                    onSenderIdSelect={onSenderIdSelect}
+                    onRefreshSenderIds={onRefreshSenderIds}
                 />
 
                 <RecipientInput
-                    onRecipientsChange={(recipients, valid, invalid) => {
-                        setRecipients(recipients);
+                    onRecipientsChange={(newRecipients) => {
+                        onRecipientsChange(newRecipients);
                     }}
                     onUploadCSV={() => console.log('Upload CSV clicked')}
                 />
@@ -56,17 +139,19 @@ const SmsMain = () => {
                 </div>
 
                 <SMSComposer
-                    onMessageChange={(msg, chars, units) => {
-                        setMessage(msg);
+                    onMessageChange={(msg) => {
+                        onMessageChange(msg);
                     }}
+                    recipientCount={recipients.length}
+                    unitPrice={activeRoutePrice}
                     onPersonalize={() => console.log('Personalize clicked')}
                     onTemplates={() => console.log('Templates clicked')}
                 />
 
                 <SandboxMode
                     enabled={sandboxEnabled}
-                    onToggle={() => setSandboxEnabled(!sandboxEnabled)}
-                    onSendTest={() => console.log('Send test SMS')}
+                    onToggle={onSandboxToggle}
+                    onSendTest={onSendTest}
                 />
             </div>
         </div>

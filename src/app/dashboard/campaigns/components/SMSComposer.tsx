@@ -19,12 +19,18 @@ export const SMSComposer: React.FC<SMSComposerProps> = ({
     recipientCount = 42,
 }) => {
     const [message, setMessage] = useState(initialMessage);
-    const [characters, setCharacters] = useState(142);
-    const [units, setUnits] = useState(1);
+    const [characters, setCharacters] = useState(0);
+    const [units, setUnits] = useState(0);
 
     const calculateMessageStats = (text: string) => {
         const chars = text.length;
-        const smsUnits = Math.ceil(chars / 160);
+        
+        // Detect Termii special characters that restrict page limit to 70 chars instead of 160
+        const specialCharRegex = /[;\/\^\\\{\}\[\]~\|€'”]/;
+        const hasSpecialChar = specialCharRegex.test(text);
+        const limitPerPage = hasSpecialChar ? 70 : 160;
+        
+        const smsUnits = text.length === 0 ? 0 : Math.ceil(chars / limitPerPage);
 
         setCharacters(chars);
         setUnits(smsUnits);
@@ -90,7 +96,7 @@ export const SMSComposer: React.FC<SMSComposerProps> = ({
                 <div className="bg-primary/5 p-5 rounded-2xl border border-primary/10 transition-all">
                     <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Est. Billing</p>
                     <p className="text-2xl font-black text-primary">
-                        {units * recipientCount}<span className="text-xs opacity-50 ml-1 font-bold">UNITS</span>
+                        ₦{totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                 </div>
             </div>
