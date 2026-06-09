@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
     const senderId = process.env.TERMII_SENDER_ID || "Qefas";
     const baseUrl = process.env.TERMII_BASE_URL || "https://api.ng.termii.com";
     const regBaseUrl = process.env.COURSE_REGISTRATION_BASE_URL || "https://qefas.com/";
-    const contactWhatsapp = process.env.CONTACT_WHATSAPP_NUMBER || "2347065250817";
+    const contactWhatsapp = process.env.CONTACT_WHATSAPP_NUMBER || "2348165246864";
 
     let successCount = 0;
     let failureCount = 0;

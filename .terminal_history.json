@@ -121,7 +121,22 @@
       "command": "git push origin",
       "timestamp": 1781040074407,
       "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git add .",
+      "timestamp": 1781040890145,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git commit -m \"selfpaced tracker setup 3\"",
+      "timestamp": 1781040898846,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git push origin",
+      "timestamp": 1781040953831,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
     }
   ],
-  "lastUpdated": 1781040074407
+  "lastUpdated": 1781040953831
 }

@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
     const regBaseUrl = process.env.COURSE_REGISTRATION_BASE_URL || "https://qefas.com/";
     const regLink = courseSegment ? `${regBaseUrl}${courseSegment}` : regBaseUrl;
 
-    const contactWhatsapp = process.env.CONTACT_WHATSAPP_NUMBER || "2347065250817";
+    const contactWhatsapp = process.env.CONTACT_WHATSAPP_NUMBER || "2348165246864";
 
     const welcomeSms = `Hello ${parent}, welcome to Qefas! We see your interest in the ${selectedClass} selfpaced course. If you do not receive a call/message from us shortly, please register using ${regLink} or chat/call us on WhatsApp via https://wa.me/${contactWhatsapp}`;
 
