@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Inquiry from "@/models/Inquiry";
 import Campaign from "@/models/Campaign";
+import { verifyPhoneNumber } from "@/lib/services/termii.service";
 
 // Helper to format Nigerian phone numbers to Termii format: 2348030000000
 function formatPhoneNumber(num: string): string {
@@ -92,6 +93,34 @@ export async function POST(req: NextRequest) {
       const selectedClass = inquiry.childClass.trim();
       const whatsappNum = inquiry.whatsapp.trim();
 
+      // Verify phone number status before sending welcome messages
+      const verification = await verifyPhoneNumber(whatsappNum);
+      if (!verification.isValid) {
+        failureCount++;
+        inquiry.status = "lost";
+        if (!inquiry.contactHistory) {
+          inquiry.contactHistory = [];
+        }
+        inquiry.contactHistory.push({
+          contactedAt: new Date(),
+          contactMethod: "other",
+          message: `Phone number verification failed: ${verification.reason || "Invalid number or carrier structure"}`
+        });
+        await inquiry.save();
+
+        await Campaign.create({
+          title: `Welcome SMS (Bulk Rejected) - ${parent}`,
+          channel: "generic",
+          message: `Blocked welcome SMS to invalid number: ${whatsappNum}. Reason: ${verification.reason || "Invalid structure"}`,
+          recipientsCount: 1,
+          recipients: [whatsappNum],
+          status: "failed",
+          costUnits: 0,
+          termiiResponse: { error: `Verification failed: ${verification.reason}` }
+        });
+        continue;
+      }
+
       // Normalize childClass string to match the env course keys
       const normClass = selectedClass.toLowerCase().replace(/[^a-z0-9]/g, "");
       let courseKey = "";
@@ -108,7 +137,7 @@ export async function POST(req: NextRequest) {
       const regLink = courseSegment ? `${regBaseUrl}${courseSegment}` : regBaseUrl;
 
       // Updated to state: "selfpaced course" instead of "class"
-      const welcomeSms = `Hello ${parent}, welcome to Qefas Prep! We see your interest in the ${selectedClass} selfpaced course. If you do not receive a call/message from us shortly, please register using ${regLink} or chat/call us on WhatsApp via https://wa.me/${contactWhatsapp}`;
+      const welcomeSms = `Hi ${parent}, welcome! Register for the ${selectedClass} selfpaced course here: ${regLink} or chat on WhatsApp: wa.me/${contactWhatsapp}`;
 
       const formattedRecipient = formatPhoneNumber(whatsappNum);
 

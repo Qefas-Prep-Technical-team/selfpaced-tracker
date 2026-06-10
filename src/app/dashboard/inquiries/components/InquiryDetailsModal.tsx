@@ -204,6 +204,16 @@ export function InquiryDetailsModal({
       value: 'follow-up', 
       label: 'FOLLOW-UP', 
       bgColor: 'bg-orange-50 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300 shadow-sm' 
+    },
+    { 
+      value: 'resolved', 
+      label: 'RESOLVED', 
+      bgColor: 'bg-blue-50 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 shadow-sm' 
+    },
+    { 
+      value: 'lost', 
+      label: 'LOST', 
+      bgColor: 'bg-rose-50 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300 shadow-sm' 
     }
   ]
 

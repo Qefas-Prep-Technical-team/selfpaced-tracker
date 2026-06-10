@@ -5,6 +5,7 @@ import dbConnect from "@/lib/mongodb";
 import Inquiry from "@/models/Inquiry";
 import { Channel } from "@/models/Channel";
 import Campaign from "@/models/Campaign";
+import { verifyPhoneNumber } from "@/lib/services/termii.service";
 
 // Helper to format Nigerian phone numbers to Termii format: 2348030000000
 function formatPhoneNumber(num: string): string {
@@ -82,7 +83,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // CHECK 2: Name Uniqueness (Add this part)
+    // CHECK 2: Name Uniqueness
     const existingName = await Inquiry.findOne({
       parentNameNormalized: normalizedName,
     });
@@ -93,7 +94,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ... continue to create inquiry ...
+    // CHECK 3: Phone Number Status/Insight Verification
+    const verification = await verifyPhoneNumber(normalizedWhatsapp);
+    if (!verification.isValid) {
+      return NextResponse.json(
+        { error: verification.reason || "The WhatsApp number provided is invalid or fake." },
+        { status: 400, headers: corsHeaders }
+      );
+    }
 
     // 3. Create the inquiry
     const inquiry = await Inquiry.create({
@@ -132,7 +140,7 @@ export async function POST(req: NextRequest) {
 
     const contactWhatsapp = process.env.CONTACT_WHATSAPP_NUMBER || "2348165246864";
 
-    const welcomeSms = `Hello ${parent}, welcome to Qefas Prep! We see your interest in the ${selectedClass} selfpaced course. If you do not receive a call/message from us shortly, please register using ${regLink} or chat/call us on WhatsApp via https://wa.me/${contactWhatsapp}`;
+    const welcomeSms = `Hi ${parent}, welcome! Register for the ${selectedClass} selfpaced course here: ${regLink} or chat on WhatsApp: wa.me/${contactWhatsapp}`;
 
     // Format recipient phone number
     const formattedRecipient = formatPhoneNumber(whatsapp);

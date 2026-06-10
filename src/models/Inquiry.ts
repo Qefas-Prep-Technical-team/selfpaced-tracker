@@ -14,7 +14,7 @@ export interface IInquiry extends Document {
   whatsapp: string;
   channelId: mongoose.Types.ObjectId;
   channelName: string;
-  status: 'new' | 'contacted' | 'follow-up';
+  status: 'new' | 'contacted' | 'follow-up' | 'resolved' | 'lost';
   contactHistory: IContactHistory[];
   createdAt: Date;
 }
@@ -60,7 +60,7 @@ const InquirySchema = new mongoose.Schema<IInquiry>({
 
   status: {
     type: String,
-    enum: ['new', 'contacted', 'follow-up'],
+    enum: ['new', 'contacted', 'follow-up', 'resolved', 'lost'],
     default: 'new',
   },
 
