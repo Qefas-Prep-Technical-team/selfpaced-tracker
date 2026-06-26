@@ -23,7 +23,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No convo" }, { status: 404 });
     }
 
-    await sendMetaText(convo.phoneNumber, body);
+    if (convo.phoneNumber.startsWith('tg_')) {
+      const chatId = convo.phoneNumber.replace('tg_', '');
+      const { sendTelegramText } = await import('@/lib/telegram');
+      await sendTelegramText(chatId, body);
+    } else {
+      await sendMetaText(convo.phoneNumber, body);
+    }
 
     const humanMessage = {
       body,
@@ -36,8 +42,8 @@ export async function POST(req: Request) {
     convo.lastMessageAt = new Date();
     await convo.save();
 
-    await pusher.trigger(`chat-${conversationId}`, "new-message", humanMessage);
-    await pusher.trigger(`chat-updates`, "new-message", { sender: "human", conversationId });
+    await pusher.trigger(`chat-${convo._id.toString()}`, "new-message", humanMessage);
+    await pusher.trigger(`chat-updates`, "new-message", { sender: "human", conversationId: convo._id.toString() });
 
     return NextResponse.json({ success: true });
   } catch (error) {

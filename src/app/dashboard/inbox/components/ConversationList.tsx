@@ -23,6 +23,7 @@ const ConversationList: FC<ConversationListProps> = ({
 }) => {
     const queryClient = useQueryClient()
     const [searchQuery, setSearchQuery] = useState('')
+    const [showFlaggedOnly, setShowFlaggedOnly] = useState(false)
     
     // New Chat Modal States
     const [isNewChatOpen, setIsNewChatOpen] = useState(false)
@@ -59,8 +60,10 @@ const ConversationList: FC<ConversationListProps> = ({
         return () => { pusherClient.unsubscribe('chat-updates') }
     }, [queryClient])
 
-    // Filter conversations based on query
+    // Filter conversations based on query and flagged status
     const filteredConversations = conversations?.filter((contact: any) => {
+        if (showFlaggedOnly && !contact.flagged) return false;
+        
         const query = searchQuery.toLowerCase()
         return (
             contact.name?.toLowerCase().includes(query) ||
@@ -110,13 +113,22 @@ const ConversationList: FC<ConversationListProps> = ({
             <div className="p-6 flex flex-col gap-4 border-b border-slate-100 dark:border-slate-800/50">
                 <div className="flex items-center justify-between">
                     <h1 className="text-slate-900 dark:text-white text-xl font-bold tracking-tight">Messages</h1>
-                    <button 
-                        onClick={() => setIsNewChatOpen(true)}
-                        className="h-8 w-8 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all duration-200 shadow-sm cursor-pointer"
-                        aria-label="Start New Chat"
-                    >
-                        <span className="material-symbols-outlined text-xl">add</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button 
+                            onClick={() => setShowFlaggedOnly(!showFlaggedOnly)}
+                            className={`h-8 w-8 flex items-center justify-center rounded-full transition-all duration-200 shadow-sm cursor-pointer ${showFlaggedOnly ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700'}`}
+                            title="Filter Flagged"
+                        >
+                            <span className="material-symbols-outlined text-lg">flag</span>
+                        </button>
+                        <button 
+                            onClick={() => setIsNewChatOpen(true)}
+                            className="h-8 w-8 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all duration-200 shadow-sm cursor-pointer"
+                            aria-label="Start New Chat"
+                        >
+                            <span className="material-symbols-outlined text-xl">add</span>
+                        </button>
+                    </div>
                 </div>
                 <SearchBar 
                     placeholder="Search conversations..." 
@@ -165,6 +177,11 @@ const ConversationList: FC<ConversationListProps> = ({
                                         </div>
                                         {contact.status === 'online' && (
                                             <div className="absolute bottom-0.5 right-0.5 size-3.5 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 shadow-sm" />
+                                        )}
+                                        {contact.flagged && (
+                                            <div className="absolute -top-1 -right-1 size-5 bg-amber-500 text-white rounded-full border-2 border-white dark:border-slate-900 shadow-sm flex items-center justify-center">
+                                                <span className="material-symbols-outlined text-[10px] font-bold">flag</span>
+                                            </div>
                                         )}
                                     </div>
 

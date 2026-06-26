@@ -3,12 +3,11 @@ import { NextRequest } from "next/server";
 import Pusher from "pusher";
 import dbConnect from "@/lib/mongodb";
 import {
-  sendMetaCourseLink,
-  sendMetaCourseList,
-  sendMetaText,
-  sendMetaWebsiteButton,
-  sendMetaWebsiteLink,
-} from "@/lib/meta";
+  sendTelegramCourseLink,
+  sendTelegramCourseList,
+  sendTelegramText,
+  sendTelegramWebsiteButton,
+} from "@/lib/telegram";
 import { COURSE_MAP } from "@/lib/constants/whatsapp";
 import { getRelevantKnowledge } from "@/lib/services/knowledge.service";
 import {
@@ -23,8 +22,6 @@ import { generateAiReply } from "@/lib/services/ai.service";
 
 export const runtime = "nodejs";
 
-const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN!;
-
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID!,
   key: process.env.NEXT_PUBLIC_PUSHER_KEY!,
@@ -33,46 +30,28 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
-function extractIncomingMessage(body: any) {
-  const value = body?.entry?.[0]?.changes?.[0]?.value;
-  const message = value?.messages?.[0];
-
-  if (!message) {
-    return null;
+function extractTelegramMessage(body: any) {
+  if (body.callback_query) {
+    const query = body.callback_query;
+    return {
+      from: query.message.chat.id.toString(),
+      userMsg: query.data,
+      selectionKey: query.data,
+      senderName: query.from.first_name || ""
+    };
   }
 
-  const from = message?.from || "";
-  const text = message?.text?.body || "";
-  const interactiveId =
-    message?.interactive?.list_reply?.id ||
-    message?.interactive?.button_reply?.id ||
-    "";
-
-  const interactiveTitle =
-    message?.interactive?.list_reply?.title ||
-    message?.interactive?.button_reply?.title ||
-    "";
-
-  return {
-    from,
-    userMsg: text || interactiveTitle,
-    selectionKey: interactiveId || text,
-    message,
-  };
-}
-
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-
-  const mode = searchParams.get("hub.mode");
-  const token = searchParams.get("hub.verify_token");
-  const challenge = searchParams.get("hub.challenge");
-
-  if (mode === "subscribe" && token === VERIFY_TOKEN) {
-    return new Response(challenge, { status: 200 });
+  if (body.message) {
+    const msg = body.message;
+    return {
+      from: msg.chat.id.toString(),
+      userMsg: msg.text || "",
+      selectionKey: "",
+      senderName: msg.from.first_name || ""
+    };
   }
 
-  return new Response("Verification failed", { status: 403 });
+  return null;
 }
 
 export async function POST(req: NextRequest) {
@@ -80,26 +59,34 @@ export async function POST(req: NextRequest) {
     await dbConnect();
 
     const body = await req.json();
-    const incoming = extractIncomingMessage(body);
+    const incoming = extractTelegramMessage(body);
 
     if (!incoming?.from) {
       return Response.json({ ok: true });
     }
 
-    const { from, userMsg, selectionKey } = incoming;
+    const { from, userMsg, selectionKey, senderName } = incoming;
+    
+    // We prefix telegram IDs with tg_ to separate them from whatsapp numbers
+    const chatId = `tg_${from}`;
 
-    const convo = await findOrCreateConversation(from);
+    const convo = await findOrCreateConversation(chatId);
     const channel = `chat-${convo._id.toString()}`;
-    const isNameUnset = convo.name === "New Lead";
+    const isNameUnset = convo.name === "New Lead" || convo.name === "";
+    
+    if (isNameUnset && senderName) {
+      await updateConversationName(convo, senderName);
+      convo.name = senderName;
+    }
 
     if (selectionKey === "open_website") {
-      await sendMetaWebsiteLink(from);
+      await sendTelegramWebsiteButton(from, convo.name);
       await saveSelectionMessage(convo, "Open Website");
       return Response.json({ ok: true });
     }
 
     if (COURSE_MAP[selectionKey]) {
-      await sendMetaCourseLink(from, COURSE_MAP[selectionKey], convo.name);
+      await sendTelegramCourseLink(from, COURSE_MAP[selectionKey], convo.name);
       await saveSelectionMessage(convo, userMsg || selectionKey);
       await updateLastInteractiveSent(convo, selectionKey);
       return Response.json({ ok: true });
@@ -161,10 +148,10 @@ export async function POST(req: NextRequest) {
           sender: "bot",
         });
         await pusher.trigger("chat-updates", "new-message", { sender: "bot", conversationId: convo._id.toString() });
-        await sendMetaText(from, ai.reply);
+        await sendTelegramText(from, ai.reply);
       }
 
-      await sendMetaCourseList(from, convo.name);
+      await sendTelegramCourseList(from, convo.name);
       await updateLastInteractiveSent(convo, "SHOW_LIST");
       return Response.json({ ok: true });
     }
@@ -177,10 +164,10 @@ export async function POST(req: NextRequest) {
           sender: "bot",
         });
         await pusher.trigger("chat-updates", "new-message", { sender: "bot", conversationId: convo._id.toString() });
-        await sendMetaText(from, ai.reply);
+        await sendTelegramText(from, ai.reply);
       }
 
-      await sendMetaWebsiteButton(from, convo.name);
+      await sendTelegramWebsiteButton(from, convo.name);
       await updateLastInteractiveSent(convo, "SHOW_WEBSITE");
       return Response.json({ ok: true });
     }
@@ -194,11 +181,11 @@ export async function POST(req: NextRequest) {
     await pusher.trigger("chat-updates", "new-message", { sender: "bot", conversationId: convo._id.toString() });
 
     await updateLastInteractiveSent(convo, null);
-    await sendMetaText(from, ai.reply);
+    await sendTelegramText(from, ai.reply);
 
     return Response.json({ ok: true });
   } catch (error) {
-    console.error("Meta Webhook Error:", error);
+    console.error("Telegram Webhook Error:", error);
     return Response.json(
       {
         ok: false,
@@ -208,40 +195,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
-// export async function POST(req: NextRequest) {
-//   try {
-//     const body = await req.json();
-//     console.log("META WEBHOOK BODY:", JSON.stringify(body, null, 2));
-
-//     const message = body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
-//     const from = message?.from;
-
-//     if (from) {
-//       await sendMetaText(from, "Webhook received successfully.");
-//     }
-
-//     return Response.json({ ok: true });
-//   } catch (error) {
-//     console.error("Meta Webhook Error:", error);
-//     return Response.json({ ok: false }, { status: 500 });
-//   }
-// }
-// export async function POST(req: NextRequest) {
-//   try {
-//     const body = await req.json();
-//     console.log("META WEBHOOK BODY:", JSON.stringify(body, null, 2));
-
-//     const message = body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
-//     const from = message?.from;
-
-//     if (from) {
-//       await sendMetaText(from, "Webhook received successfully.");
-//     }
-
-//     return Response.json({ ok: true });
-//   } catch (error) {
-//     console.error("Meta Webhook Error:", error);
-//     return Response.json({ ok: false }, { status: 500 });
-//   }
-// }

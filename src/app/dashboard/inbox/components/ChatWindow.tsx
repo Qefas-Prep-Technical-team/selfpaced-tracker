@@ -141,6 +141,8 @@ const ChatWindow: FC<ChatWindowProps> = ({ contactId, onBack, onShowDetails }) =
                 status={conversation?.status} 
                 avatar={conversation?.avatar}
                 conversationId={contactId} 
+                flagged={conversation?.flagged}
+                flagReason={conversation?.flagReason}
                 onEditClick={() => setIsEditing(true)}
                 onBack={onBack}
                 onShowDetails={onShowDetails}

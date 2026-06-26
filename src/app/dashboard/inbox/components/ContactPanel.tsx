@@ -186,13 +186,15 @@ const ContactPanel: FC<ContactPanelProps> = ({ contactId, onBack }) => {
                             </div>
                         </div>
                         <div className="flex items-center gap-3 group">
-                            <div className="size-8 rounded-lg bg-slate-50 dark:bg-slate-800/50 flex items-center justify-center text-slate-400 group-hover:text-amber-500 transition-colors border border-slate-100 dark:border-slate-700/50">
-                                <span className="material-symbols-outlined text-lg">forum</span>
+                            <div className={`size-8 rounded-lg bg-slate-50 dark:bg-slate-800/50 flex items-center justify-center transition-colors border border-slate-100 dark:border-slate-700/50 ${conversation.phoneNumber?.startsWith('tg_') ? 'text-slate-400 group-hover:text-blue-500' : 'text-slate-400 group-hover:text-amber-500'}`}>
+                                <span className="material-symbols-outlined text-lg">
+                                    {conversation.phoneNumber?.startsWith('tg_') ? 'send' : 'forum'}
+                                </span>
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Channel</span>
                                 <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">
-                                    WhatsApp Integration
+                                    {conversation.phoneNumber?.startsWith('tg_') ? 'Telegram Integration' : 'WhatsApp Integration'}
                                 </span>
                             </div>
                         </div>
@@ -326,8 +328,8 @@ const ContactPanel: FC<ContactPanelProps> = ({ contactId, onBack }) => {
                                 Newsletter Subscribed
                             </Badge>
                         )}
-                        <Badge color="orange">
-                            WhatsApp Lead
+                        <Badge color={conversation.phoneNumber?.startsWith('tg_') ? 'blue' : 'orange'}>
+                            {conversation.phoneNumber?.startsWith('tg_') ? 'Telegram Lead' : 'WhatsApp Lead'}
                         </Badge>
                     </div>
                 </section>

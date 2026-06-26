@@ -8,19 +8,19 @@ interface ChatHeaderProps {
     status: string;
     avatar: string;
     conversationId: string;
-    onEditClick?: () => void;
-    onBack?: () => void;
-    onShowDetails?: () => void;
+    flagged?: boolean;
+    flagReason?: string | null;
 }
 
-const ChatHeader: FC<ChatHeaderProps> = ({ name, status, avatar, conversationId, onEditClick, onBack, onShowDetails }) => {
+const ChatHeader: FC<ChatHeaderProps> = ({ name, status, avatar, conversationId, flagged, flagReason, onEditClick, onBack, onShowDetails }) => {
     const queryClient = useQueryClient();
 
     const handleToggle = async (newMode: string) => {
         // Optimistic UI update
         queryClient.setQueryData(['conversation', conversationId], (old: any) => ({
             ...old,
-            status: newMode === 'ai' ? 'bot' : 'human'
+            status: newMode === 'ai' ? 'bot' : 'human',
+            flagged: false, // Clear flag on status toggle
         }));
         queryClient.invalidateQueries({ queryKey: ['leads'] });
 
@@ -31,72 +31,83 @@ const ChatHeader: FC<ChatHeaderProps> = ({ name, status, avatar, conversationId,
     };
 
     return (
-        <div className="h-16 md:h-20 px-4 md:px-6 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background/80 backdrop-blur-md flex items-center justify-between sticky top-0 z-20 w-full shrink-0">
-            <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
-                {/* Mobile Back Button */}
-                <button 
-                    onClick={onBack}
-                    className="md:hidden size-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-500 active:scale-90 transition-transform shrink-0"
-                    aria-label="Back to conversations"
-                >
-                    <span className="material-symbols-outlined text-xl">arrow_back</span>
-                </button>
+        <div className="flex flex-col z-20 w-full shrink-0 sticky top-0 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background/80 backdrop-blur-md">
+            {flagged && (
+                <div className="w-full bg-amber-50 dark:bg-amber-900/20 px-4 py-2 flex items-start gap-2 border-b border-amber-100 dark:border-amber-800/30">
+                    <span className="material-symbols-outlined text-amber-500 text-sm mt-0.5">flag</span>
+                    <p className="text-xs text-amber-700 dark:text-amber-400 font-medium leading-relaxed">
+                        <span className="font-bold mr-1">Flagged for Human Review:</span> 
+                        {flagReason || "User requires administrative assistance."}
+                    </p>
+                </div>
+            )}
+            <div className="h-16 md:h-20 px-4 md:px-6 flex items-center justify-between">
+                <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
+                    {/* Mobile Back Button */}
+                    <button 
+                        onClick={onBack}
+                        className="md:hidden size-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-500 active:scale-90 transition-transform shrink-0"
+                        aria-label="Back to conversations"
+                    >
+                        <span className="material-symbols-outlined text-xl">arrow_back</span>
+                    </button>
 
-                <div className="relative shrink-0 hidden sm:block">
-                    <div className="h-10 w-10 rounded-full overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800 shadow-sm">
-                        <img 
-                            src={avatar || "https://ui-avatars.com/api/?name=" + encodeURIComponent(name)} 
-                            className="h-full w-full object-cover" 
-                            alt={name} 
+                    <div className="relative shrink-0 hidden sm:block">
+                        <div className="h-10 w-10 rounded-full overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800 shadow-sm">
+                            <img 
+                                src={avatar || "https://ui-avatars.com/api/?name=" + encodeURIComponent(name)} 
+                                className="h-full w-full object-cover" 
+                                alt={name} 
+                            />
+                        </div>
+                        <div className="absolute bottom-0 right-0 size-3 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 shadow-sm" />
+                    </div>
+                    
+                    <div className="flex flex-col min-w-0">
+                        <h3 className="text-slate-900 dark:text-white font-bold tracking-tight text-sm md:text-base truncate">{name}</h3>
+                        <div className="flex items-center gap-2 text-[10px] text-slate-500 font-medium">
+                            <span className="flex items-center gap-1 shrink-0">
+                                <span className="size-1.5 bg-emerald-500 rounded-full" />
+                                <span className="hidden xs:inline">Online</span>
+                            </span>
+                            <span className="text-slate-300 dark:text-slate-700 hidden xs:inline shrink-0">•</span>
+                            <span className="truncate hidden sm:inline">#{conversationId?.slice(-6).toUpperCase() || 'N/A'}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2 md:gap-4">
+                    <div className="hidden sm:block">
+                        <ToggleGroup
+                            value={status === 'bot' ? 'ai' : 'manual'}
+                            onChange={handleToggle}
+                            options={[
+                                { value: 'ai', label: 'AI Bot', icon: 'smart_toy' },
+                                { value: 'manual', label: 'Manual', icon: 'person' },
+                            ]}
                         />
                     </div>
-                    <div className="absolute bottom-0 right-0 size-3 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 shadow-sm" />
-                </div>
-                
-                <div className="flex flex-col min-w-0">
-                    <h3 className="text-slate-900 dark:text-white font-bold tracking-tight text-sm md:text-base truncate">{name}</h3>
-                    <div className="flex items-center gap-2 text-[10px] text-slate-500 font-medium">
-                        <span className="flex items-center gap-1 shrink-0">
-                            <span className="size-1.5 bg-emerald-500 rounded-full" />
-                            <span className="hidden xs:inline">Online</span>
-                        </span>
-                        <span className="text-slate-300 dark:text-slate-700 hidden xs:inline shrink-0">•</span>
-                        <span className="truncate hidden sm:inline">#{conversationId?.slice(-6).toUpperCase() || 'N/A'}</span>
-                    </div>
-                </div>
-            </div>
+                    
+                    {/* Mobile Details Toggle */}
+                    <button 
+                        onClick={onShowDetails}
+                        className="md:hidden size-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-500 active:scale-95 transition-all shrink-0"
+                        aria-label="Toggle contact info"
+                    >
+                        <span className="material-symbols-outlined text-xl">info</span>
+                    </button>
 
-            <div className="flex items-center gap-2 md:gap-4">
-                <div className="hidden sm:block">
-                    <ToggleGroup
-                        value={status === 'bot' ? 'ai' : 'manual'}
-                        onChange={handleToggle}
-                        options={[
-                            { value: 'ai', label: 'AI Bot', icon: 'smart_toy' },
-                            { value: 'manual', label: 'Manual', icon: 'person' },
-                        ]}
-                    />
+                    <div className="hidden md:block h-8 w-px bg-slate-200 dark:bg-slate-800" />
+                    
+                    {/* Three-dot button opens edit details modal */}
+                    <button 
+                        onClick={onEditClick}
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 transition-colors hidden md:block cursor-pointer"
+                        title="Edit Contact"
+                    >
+                        <span className="material-symbols-outlined">more_vert</span>
+                    </button>
                 </div>
-                
-                {/* Mobile Details Toggle */}
-                <button 
-                    onClick={onShowDetails}
-                    className="md:hidden size-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-500 active:scale-95 transition-all shrink-0"
-                    aria-label="Toggle contact info"
-                >
-                    <span className="material-symbols-outlined text-xl">info</span>
-                </button>
-
-                <div className="hidden md:block h-8 w-px bg-slate-200 dark:bg-slate-800" />
-                
-                {/* Three-dot button opens edit details modal */}
-                <button 
-                    onClick={onEditClick}
-                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 transition-colors hidden md:block cursor-pointer"
-                    title="Edit Contact"
-                >
-                    <span className="material-symbols-outlined">more_vert</span>
-                </button>
             </div>
         </div>
     );

@@ -36,6 +36,8 @@ export async function GET() {
             ? [{ label: "Subscriber", color: "green" }]
             : []),
         ],
+        flagged: lead.flagged || false,
+        flagReason: lead.flagReason || null,
       };
     });
 

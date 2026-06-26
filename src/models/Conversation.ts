@@ -17,6 +17,8 @@ export interface IConversation extends Document {
   lastMessageAt: Date;
   isSubscribedToNewsletter: boolean;
   lastButtonSent: string | null;
+  flagged: boolean;
+  flagReason: string | null;
 }
 
 const MessageSchema = new Schema<IMessage>({
@@ -35,6 +37,8 @@ const ConversationSchema = new Schema<IConversation>(
     lastMessageAt: { type: Date, default: Date.now },
     isSubscribedToNewsletter: { type: Boolean, default: false },
     lastButtonSent: { type: String, default: null },
+    flagged: { type: Boolean, default: false },
+    flagReason: { type: String, default: null },
   },
   { timestamps: true },
 );

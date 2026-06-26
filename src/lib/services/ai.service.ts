@@ -8,8 +8,9 @@ const openai = new OpenAI({
 
 type AiResult = {
   reply: string;
-  action: "SHOW_LIST" | "SHOW_WEBSITE" | null;
+  action: "SHOW_LIST" | "SHOW_WEBSITE" | "FLAG" | null;
   newName: string | null;
+  flagReason: string | null;
 };
 
 export async function generateAiReply(params: {
@@ -38,7 +39,7 @@ export async function generateAiReply(params: {
   const systemPrompt: ChatCompletionMessageParam = {
     role: "system",
     content: `
-You are the official WhatsApp support representative for QEFAS Prep School. Your goal is to guide prospective students and parents, answer questions naturally and professionally, and build a warm, helpful connection.
+You are the official support representative for QEFAS Prep School. Your goal is to guide prospective students and parents, answer questions naturally and professionally, and build a warm, helpful connection.
 
 Current Date: ${dateStr}
 Current Time: ${timeStr}
@@ -59,53 +60,73 @@ PERSONALITY & HUMAN CONVERSATION GUIDELINES:
    - If the user provides their name, use the "update_user_name" tool.
 3. Accurate & Confident Responses:
    - Rely strictly on the KNOWLEDGE BASE for answering school-specific policy questions (fees, schedules, class structures, registrations).
-   - If the KNOWLEDGE BASE does not contain the answer to a specific question, do NOT hallucinate or make up details. Politely say: "I don't have that specific detail on hand, but I will flag this for our administrative team so they can follow up with you directly. 😊"
-4. Actions & Button Triggers:
-   - If the user shows interest in enrolling, registration, class offerings, or asks "what courses do you offer", include the tag [SHOW_LIST] at the very end of your response.
-   - If the user asks for the website, online portal, or links, include the tag [SHOW_WEBSITE] at the very end of your response.
+   - If the KNOWLEDGE BASE does not contain the answer to a specific question, do NOT hallucinate or make up details. Politely say: "I don't have that specific detail on hand, but I will flag this for our administrative team so they can follow up with you directly. 😊" AND immediately call the "flag_for_human" tool with the user's issue.
+4. CRITICAL RULES FOR MENUS AND LINKS (DO NOT IGNORE):
+   - You CANNOT send course links manually or register students yourself. You do NOT need their details.
+   - Any time a user shows interest in enrolling, asks for a course link, says "yes" to enrolling, or mentions a specific class (like JSS2), you MUST append the exact tag [SHOW_LIST] at the very end of your response. This triggers the system to send them the interactive course menu so they can register automatically.
+   - Example response: "Great! Please select your course from the menu below to get the official enrollment link. [SHOW_LIST]"
+   - If the user asks for the website, online portal, or links to the homepage, include the tag [SHOW_WEBSITE] at the very end of your response.
 5. Conciseness: Keep your response engaging, helpful, and concise (between 25 and 75 words).
 `,
   };
 
   const hasName = convo.name !== "New Lead";
+  const tools: any[] = [
+    {
+      type: "function",
+      function: {
+        name: "flag_for_human",
+        description: "Flags the conversation for human administrative review. Call this when you don't know the answer to a question, or the user explicitly asks for human help.",
+        parameters: {
+          type: "object",
+          properties: {
+            reason: { type: "string", description: "The user's issue or question that needs human attention." },
+          },
+          required: ["reason"],
+        },
+      },
+    },
+  ];
+
+  if (!hasName) {
+    tools.push({
+      type: "function",
+      function: {
+        name: "update_user_name",
+        description: "Updates the student's name if they provide it",
+        parameters: {
+          type: "object",
+          properties: {
+            newName: { type: "string" },
+          },
+          required: ["newName"],
+        },
+      },
+    });
+  }
 
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",
-    temperature: 0.2, // Low temperature for consistency, but slightly above 0 for more natural speech variation
+    temperature: 0.2,
     messages: [systemPrompt, ...history],
-    tools: hasName ? undefined : [
-      {
-        type: "function",
-        function: {
-          name: "update_user_name",
-          description: "Updates the student's name if they provide it",
-          parameters: {
-            type: "object",
-            properties: {
-              newName: { type: "string" },
-            },
-            required: ["newName"],
-          },
-        },
-      },
-    ],
-    tool_choice: hasName ? undefined : "auto",
+    tools,
+    tool_choice: "auto",
   });
 
   const choice = completion.choices[0].message;
 
   let newName: string | null = null;
+  let flagReason: string | null = null;
 
-  if (choice.tool_calls?.length && !hasName) {
+  if (choice.tool_calls?.length) {
     for (const toolCall of choice.tool_calls) {
-      if (
-        toolCall.type === "function" &&
-        toolCall.function.name === "update_user_name"
-      ) {
+      if (toolCall.type === "function") {
         try {
           const args = JSON.parse(toolCall.function.arguments);
-          if (args?.newName) {
+          if (toolCall.function.name === "update_user_name" && args?.newName && !hasName) {
             newName = args.newName.trim();
+          } else if (toolCall.function.name === "flag_for_human" && args?.reason) {
+            flagReason = args.reason.trim();
           }
         } catch (error) {
           console.error("Failed to parse tool arguments:", error);
@@ -114,9 +135,9 @@ PERSONALITY & HUMAN CONVERSATION GUIDELINES:
     }
   }
 
-  const rawReply = choice.content || "I understand. Is there anything else you'd like to know about our courses or school?";
+  const rawReply = choice.content || "I understand. I will flag this for our administrative team so they can assist you further.";
 
-  let action: "SHOW_LIST" | "SHOW_WEBSITE" | null = null;
+  let action: "SHOW_LIST" | "SHOW_WEBSITE" | "FLAG" | null = flagReason ? "FLAG" : null;
 
   if (rawReply.includes("[SHOW_LIST]")) {
     action = "SHOW_LIST";
@@ -133,5 +154,6 @@ PERSONALITY & HUMAN CONVERSATION GUIDELINES:
     reply,
     action,
     newName,
+    flagReason,
   };
 }

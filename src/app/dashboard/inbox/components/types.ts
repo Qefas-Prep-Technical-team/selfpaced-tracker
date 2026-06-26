@@ -22,6 +22,8 @@ export interface Conversation {
   email?: string;
   tags?: string[];
   lastSeen?: string;
+  flagged?: boolean;
+  flagReason?: string | null;
 }
 
 export interface HandoffPayload {

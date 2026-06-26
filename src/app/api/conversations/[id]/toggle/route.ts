@@ -11,7 +11,10 @@ export async function POST(
     const { status } = await req.json(); // Expecting 'bot' or 'human'
     await dbConnect();
 
-    await Conversation.findByIdAndUpdate(id, { status });
+    await Conversation.findByIdAndUpdate(id, { 
+      status,
+      ...(status === 'bot' && { flagged: false, flagReason: null }) // Auto-clear flags when returning to bot mode
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

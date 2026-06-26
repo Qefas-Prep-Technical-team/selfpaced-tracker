@@ -25,7 +25,7 @@ export const chatService = {
   async sendMessage(
     payload: SendMessagePayload
   ): Promise<{ success: boolean }> {
-    const response = await fetch(`${API_BASE}/chat/send`, {
+    const response = await fetch(`${API_BASE}/messages/send`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
