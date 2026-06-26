@@ -1,4 +1,5 @@
-import { COURSE_ROWS, WEBSITE_URL } from "@/lib/constants/whatsapp";
+import { COURSE_MAP, COURSE_ROWS, WEBSITE_URL } from "@/lib/constants/whatsapp";
+import { COURSE_LIST_BANNER, COURSE_BANNERS, GENERAL_QEFAS_BANNER } from "@/lib/constants/images";
 
 const GRAPH_VERSION = process.env.META_GRAPH_VERSION || "v22.0";
 const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN!;
@@ -42,6 +43,17 @@ export async function sendMetaText(to: string, body: string) {
   });
 }
 
+export async function sendMetaGeneralAbout(to: string, body: string) {
+  return sendMetaMessage({
+    to,
+    type: "image",
+    image: {
+      link: GENERAL_QEFAS_BANNER,
+      caption: body,
+    },
+  });
+}
+
 export async function sendMetaCourseList(to: string, customerName?: string) {
   return sendMetaMessage({
     to,
@@ -49,8 +61,10 @@ export async function sendMetaCourseList(to: string, customerName?: string) {
     interactive: {
       type: "list",
       header: {
-        type: "text",
-        text: "QEFAS Courses",
+        type: "image",
+        image: {
+          link: COURSE_LIST_BANNER
+        }
       },
       body: {
         text: `Hello ${customerName || "there"}, please choose a class to continue.`,
@@ -105,8 +119,15 @@ export async function sendMetaCourseLink(
   customerName?: string,
 ) {
   const fullUrl = `${WEBSITE_URL.replace(/\/$/, "")}/${coursePath}`;
-  return sendMetaText(
+  const courseKey = Object.keys(COURSE_MAP).find(key => COURSE_MAP[key] === coursePath);
+  const bannerImg = (courseKey && COURSE_BANNERS[courseKey]) ? COURSE_BANNERS[courseKey] : COURSE_BANNERS["default"];
+  
+  return sendMetaMessage({
     to,
-    `Great ${customerName || ""}, here is your course link: ${fullUrl}`.trim(),
-  );
+    type: "image",
+    image: {
+      link: bannerImg,
+      caption: `Great ${customerName || ""}, here is your course link: ${fullUrl}`.trim(),
+    },
+  });
 }

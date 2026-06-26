@@ -376,7 +376,37 @@
       "command": "git push origin",
       "timestamp": 1782515006436,
       "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git add .",
+      "timestamp": 1782515160912,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git push origin",
+      "timestamp": 1782515188402,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git commit -m \"updated the ai logi and included telegram bot 3\"",
+      "timestamp": 1782515254205,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git push origin",
+      "timestamp": 1782515260966,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "npmr un dev",
+      "timestamp": 1782516809885,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "npm run dev",
+      "timestamp": 1782517416177,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
     }
   ],
-  "lastUpdated": 1782515006436
+  "lastUpdated": 1782517416177
 }

@@ -8,7 +8,7 @@ const openai = new OpenAI({
 
 type AiResult = {
   reply: string;
-  action: "SHOW_LIST" | "SHOW_WEBSITE" | "FLAG" | null;
+  action: "SHOW_LIST" | "SHOW_WEBSITE" | "SHOW_ABOUT" | "FLAG" | null;
   newName: string | null;
   flagReason: string | null;
 };
@@ -66,6 +66,7 @@ PERSONALITY & HUMAN CONVERSATION GUIDELINES:
    - Any time a user shows interest in enrolling, asks for a course link, says "yes" to enrolling, or mentions a specific class (like JSS2), you MUST append the exact tag [SHOW_LIST] at the very end of your response. This triggers the system to send them the interactive course menu so they can register automatically.
    - Example response: "Great! Please select your course from the menu below to get the official enrollment link. [SHOW_LIST]"
    - If the user asks for the website, online portal, or links to the homepage, include the tag [SHOW_WEBSITE] at the very end of your response.
+   - If the user asks about Qefas Prep school in general (who you are, what you do), include the tag [SHOW_ABOUT] at the very end of your response to attach our beautiful promotional banner.
 5. Conciseness: Keep your response engaging, helpful, and concise (between 25 and 75 words).
 `,
   };
@@ -137,17 +138,20 @@ PERSONALITY & HUMAN CONVERSATION GUIDELINES:
 
   const rawReply = choice.content || "I understand. I will flag this for our administrative team so they can assist you further.";
 
-  let action: "SHOW_LIST" | "SHOW_WEBSITE" | "FLAG" | null = flagReason ? "FLAG" : null;
+  let action: "SHOW_LIST" | "SHOW_WEBSITE" | "SHOW_ABOUT" | "FLAG" | null = flagReason ? "FLAG" : null;
 
   if (rawReply.includes("[SHOW_LIST]")) {
     action = "SHOW_LIST";
   } else if (rawReply.includes("[SHOW_WEBSITE]")) {
     action = "SHOW_WEBSITE";
+  } else if (rawReply.includes("[SHOW_ABOUT]")) {
+    action = "SHOW_ABOUT";
   }
 
   const reply = rawReply
-    .replace("[SHOW_LIST]", "")
-    .replace("[SHOW_WEBSITE]", "")
+    .replace(/\[SHOW_LIST\]/g, "")
+    .replace(/\[SHOW_WEBSITE\]/g, "")
+    .replace(/\[SHOW_ABOUT\]/g, "")
     .trim();
 
   return {

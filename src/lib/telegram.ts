@@ -1,11 +1,12 @@
 import { COURSE_MAP, COURSE_ROWS, WEBSITE_URL } from "./constants/whatsapp";
+import { COURSE_LIST_BANNER, COURSE_BANNERS, GENERAL_QEFAS_BANNER } from "./constants/images";
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
 export async function sendTelegramText(chatId: string, text: string) {
   try {
-    await fetch(`${TELEGRAM_API_URL}/sendMessage`, {
+    const res = await fetch(`${TELEGRAM_API_URL}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -13,8 +14,30 @@ export async function sendTelegramText(chatId: string, text: string) {
         text: text,
       }),
     });
+    
+    if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Telegram API Error:", res.status, errorText);
+    }
   } catch (error) {
-    console.error("Error sending Telegram text:", error);
+    console.error("Network Error sending Telegram text:", error);
+  }
+}
+
+export async function sendTelegramGeneralAbout(chatId: string, text: string) {
+  try {
+    const res = await fetch(`${TELEGRAM_API_URL}/sendPhoto`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        photo: GENERAL_QEFAS_BANNER,
+        caption: text,
+      }),
+    });
+    if (!res.ok) console.error("Telegram General Banner Error:", await res.text());
+  } catch (error) {
+    console.error("Error sending Telegram general banner:", error);
   }
 }
 
@@ -24,17 +47,19 @@ export async function sendTelegramCourseList(chatId: string, name: string) {
       return [{ text: course.title, callback_data: course.id }];
     });
 
-    await fetch(`${TELEGRAM_API_URL}/sendMessage`, {
+    const res = await fetch(`${TELEGRAM_API_URL}/sendPhoto`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         chat_id: chatId,
-        text: `Hi ${name || "there"}! Please select a course to learn more:`,
+        photo: COURSE_LIST_BANNER,
+        caption: `Hi ${name || "there"}! Please select a course to learn more:`,
         reply_markup: {
           inline_keyboard: inline_keyboard
         }
       }),
     });
+    if (!res.ok) console.error("Telegram Course List Error:", await res.text());
   } catch (error) {
     console.error("Error sending Telegram course list:", error);
   }
@@ -68,13 +93,15 @@ export async function sendTelegramCourseLink(chatId: string, coursePath: string,
     const courseKey = Object.keys(COURSE_MAP).find(key => COURSE_MAP[key] === coursePath);
     const course = COURSE_ROWS.find(c => c.id === courseKey);
     const title = course ? course.title : "Course";
+    const bannerImg = (courseKey && COURSE_BANNERS[courseKey]) ? COURSE_BANNERS[courseKey] : COURSE_BANNERS["default"];
 
-    await fetch(`${TELEGRAM_API_URL}/sendMessage`, {
+    const res = await fetch(`${TELEGRAM_API_URL}/sendPhoto`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         chat_id: chatId,
-        text: `Awesome choice, ${name || "there"}!\n\nHere is the link to the ${title} course:`,
+        photo: bannerImg,
+        caption: `Awesome choice, ${name || "there"}!\n\nHere is the link to the ${title} course:`,
         reply_markup: {
           inline_keyboard: [
             [{ text: `Start ${title}`, url: fullUrl }]
@@ -82,6 +109,7 @@ export async function sendTelegramCourseLink(chatId: string, coursePath: string,
         }
       }),
     });
+    if (!res.ok) console.error("Telegram Course Link Error:", await res.text());
   } catch (error) {
     console.error("Error sending Telegram course link:", error);
   }
