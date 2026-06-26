@@ -406,7 +406,22 @@
       "command": "npm run dev",
       "timestamp": 1782517416177,
       "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git add .",
+      "timestamp": 1782517423893,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git commit -m \"updated the ai logi and included telegram bot image\"",
+      "timestamp": 1782517432707,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git push origin",
+      "timestamp": 1782517450953,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
     }
   ],
-  "lastUpdated": 1782517416177
+  "lastUpdated": 1782517450953
 }
