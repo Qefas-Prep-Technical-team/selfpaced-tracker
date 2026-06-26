@@ -1,19 +1,10 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ChevronRight, ChevronLeft, Send, Save, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
-
-const CHANNELS = [
-  "School Outreach",
-  "Event Marketing",
-  "Direct Sales",
-  "Social Media",
-  "Referral",
-  "Other"
-];
 
 const OBJECTIONS = [
   "Price",
@@ -33,6 +24,47 @@ const SUPPORT_OPTIONS = [
 export default function DailyEngagementForm() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [channels, setChannels] = useState<{ _id: string, name: string }[]>([]);
+  const [isLoadingChannels, setIsLoadingChannels] = useState(true);
+
+  const [locations, setLocations] = useState<{ _id: string, name: string }[]>([]);
+  const [isLoadingLocations, setIsLoadingLocations] = useState(true);
+  const [locationSearch, setLocationSearch] = useState('');
+  const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
+  const [isAddingLocation, setIsAddingLocation] = useState(false);
+
+  useEffect(() => {
+    const fetchChannels = async () => {
+      try {
+        const res = await fetch('/api/channels/list');
+        const data = await res.json();
+        if (data.success) {
+          setChannels(data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch channels:", error);
+      } finally {
+        setIsLoadingChannels(false);
+      }
+    };
+
+    const fetchLocations = async () => {
+      try {
+        const res = await fetch('/api/locations/list');
+        const data = await res.json();
+        if (data.success) {
+          setLocations(data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch locations:", error);
+      } finally {
+        setIsLoadingLocations(false);
+      }
+    };
+
+    fetchChannels();
+    fetchLocations();
+  }, []);
 
   const [formData, setFormData] = useState({
     nameChannel: '',
@@ -51,6 +83,32 @@ export default function DailyEngagementForm() {
     supportNeeded: [] as string[],
     comments: ''
   });
+
+  const handleAddCustomLocation = async () => {
+    if (!locationSearch.trim()) return;
+    setIsAddingLocation(true);
+    try {
+      const res = await fetch('/api/locations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: locationSearch.trim() })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setLocations(prev => [...prev, data.data].sort((a, b) => a.name.localeCompare(b.name)));
+        setFormData(prev => ({ ...prev, location: data.data.name }));
+        setLocationSearch('');
+        setIsLocationDropdownOpen(false);
+        toast.success("Location added!");
+      } else {
+        toast.error("Failed to add location");
+      }
+    } catch (e) {
+      toast.error("An error occurred adding location");
+    } finally {
+      setIsAddingLocation(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -91,14 +149,17 @@ export default function DailyEngagementForm() {
         finalName: formData.nameChannel === 'Other' ? formData.nameCustom : formData.nameChannel
       };
 
-      // In a real app this would be a POST to /api/engagements or similar
-      console.log('Saving Data for Tracking:', payload);
-      
-      // We can use localstorage as a fallback tracking mechanism for now
+      const res = await fetch('/api/engagements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Failed to save data");
+
+      // Also save to localstorage as a backup tracking mechanism
       const existing = JSON.parse(localStorage.getItem('engagement_records') || '[]');
       localStorage.setItem('engagement_records', JSON.stringify([...existing, payload]));
-      
-      await new Promise(resolve => setTimeout(resolve, 1500));
       
       toast.success("Engagement data saved successfully!");
       
@@ -207,10 +268,13 @@ export default function DailyEngagementForm() {
                             className="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 px-4 py-3 text-sm transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                             required
                           >
-                            <option value="" disabled>Select a channel</option>
-                            {CHANNELS.map(c => (
-                              <option key={c} value={c}>{c}</option>
+                            <option value="" disabled>
+                              {isLoadingChannels ? "Loading channels..." : "Select a channel"}
+                            </option>
+                            {channels.map(c => (
+                              <option key={c._id} value={c.name}>{c.name}</option>
                             ))}
+                            {!isLoadingChannels && <option value="Other">Other</option>}
                           </select>
                         </div>
 
@@ -245,17 +309,60 @@ export default function DailyEngagementForm() {
                           />
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-2 relative">
                           <label className="text-sm font-medium">School(s) visited / Location <span className="text-red-500">*</span></label>
-                          <input 
-                            type="text" 
-                            name="location"
-                            value={formData.location}
-                            onChange={handleInputChange}
-                            placeholder="e.g. Lincoln High School"
-                            className="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 px-4 py-3 text-sm transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                            required
-                          />
+                          <div className="relative">
+                            <input 
+                              type="text" 
+                              value={isLocationDropdownOpen ? locationSearch : formData.location}
+                              onChange={(e) => {
+                                setLocationSearch(e.target.value);
+                                setIsLocationDropdownOpen(true);
+                                if (!isLocationDropdownOpen) setFormData(prev => ({ ...prev, location: '' }));
+                              }}
+                              onFocus={() => setIsLocationDropdownOpen(true)}
+                              placeholder="Search or add a location..."
+                              className="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 px-4 py-3 text-sm transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                              required={!formData.location}
+                            />
+                            {isLocationDropdownOpen && (
+                              <div className="fixed inset-0 z-10" onClick={() => {
+                                setIsLocationDropdownOpen(false);
+                                if (!formData.location) setLocationSearch('');
+                              }} />
+                            )}
+                            {isLocationDropdownOpen && (
+                              <div className="absolute z-20 w-full mt-1 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                                {isLoadingLocations ? (
+                                  <div className="p-3 text-sm text-neutral-500">Loading locations...</div>
+                                ) : (
+                                  <ul className="py-1">
+                                    {locations.filter(l => l.name.toLowerCase().includes(locationSearch.toLowerCase())).map(loc => (
+                                      <li 
+                                        key={loc._id} 
+                                        className="px-4 py-2 text-sm hover:bg-blue-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors"
+                                        onClick={() => {
+                                          setFormData(prev => ({ ...prev, location: loc.name }));
+                                          setLocationSearch('');
+                                          setIsLocationDropdownOpen(false);
+                                        }}
+                                      >
+                                        {loc.name}
+                                      </li>
+                                    ))}
+                                    {locationSearch.trim() !== '' && !locations.some(l => l.name.toLowerCase() === locationSearch.trim().toLowerCase()) && (
+                                      <li 
+                                        className="px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-neutral-800 cursor-pointer font-medium border-t border-neutral-100 dark:border-neutral-800 flex items-center"
+                                        onClick={handleAddCustomLocation}
+                                      >
+                                        {isAddingLocation ? 'Adding...' : `+ Add "${locationSearch.trim()}"`}
+                                      </li>
+                                    )}
+                                  </ul>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
