@@ -10,6 +10,9 @@ interface ChatHeaderProps {
     conversationId: string;
     flagged?: boolean;
     flagReason?: string | null;
+    onEditClick?: () => void;
+    onBack?: () => void;
+    onShowDetails?: () => void;
 }
 
 const ChatHeader: FC<ChatHeaderProps> = ({ name, status, avatar, conversationId, flagged, flagReason, onEditClick, onBack, onShowDetails }) => {
