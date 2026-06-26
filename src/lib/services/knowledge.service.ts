@@ -6,12 +6,14 @@ export async function getRelevantKnowledge(userMsg: string) {
     const cleanedMsg = userMsg.trim().toLowerCase();
     const keywords = cleanedMsg.split(/\s+/).filter((word) => word.length > 2);
 
+    const escapedMsg = cleanedMsg.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');
+
     const query = {
       $or: [
-        { category: { $regex: cleanedMsg, $options: "i" } },
-        { question: { $regex: cleanedMsg, $options: "i" } },
-        { tags: { $in: keywords.map((k) => new RegExp(`^${k}$`, "i")) } },
-        { tags: { $in: keywords.map((k) => new RegExp(k, "i")) } },
+        { category: { $regex: escapedMsg, $options: "i" } },
+        { question: { $regex: escapedMsg, $options: "i" } },
+        { tags: { $in: keywords.map((k) => new RegExp(`^${k.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}$`, "i")) } },
+        { tags: { $in: keywords.map((k) => new RegExp(k.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&'), "i")) } },
       ],
     };
 
