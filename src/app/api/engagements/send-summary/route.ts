@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import { EngagementReport } from "@/models/EngagementReport";
 import { ReportRecipient } from "@/models/ReportRecipient";
+import Inquiry from "@/models/Inquiry";
 import OpenAI from "openai";
 import { Resend } from "resend";
 
@@ -47,6 +48,46 @@ async function generateAndSendSummary(startDate?: Date, endDate?: Date) {
   if (reports.length === 0) {
     return { success: false, error: `No reports found for the selected timeframe (${timeFrameText}).` };
   }
+
+  // Fetch inquiries for the same timeframe
+  let inquiryQuery: any = {};
+  if (startDate && endDate) {
+    inquiryQuery.createdAt = { 
+      $gte: new Date(startDate), 
+      $lte: new Date(new Date(endDate).setHours(23, 59, 59, 999)) 
+    };
+  } else if (startDate) {
+    inquiryQuery.createdAt = { $gte: new Date(startDate) };
+  } else if (endDate) {
+    inquiryQuery.createdAt = { $lte: new Date(new Date(endDate).setHours(23, 59, 59, 999)) };
+  }
+  const inquiries = await Inquiry.find(inquiryQuery);
+  const totalInquiries = inquiries.length;
+  const inquiriesByStatus = inquiries.reduce((acc, curr) => {
+    acc[curr.status] = (acc[curr.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const inquiriesByClass = inquiries.reduce((acc, curr) => {
+    const className = curr.childClass || 'Unknown';
+    acc[className] = (acc[className] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  let totalSmsSent = 0;
+  let totalWhatsappSent = 0;
+  let totalCallsMade = 0;
+
+  inquiries.forEach(inq => {
+    if (inq.contactHistory && inq.contactHistory.length > 0) {
+      inq.contactHistory.forEach((history: any) => {
+        if (history.contactMethod === 'sms') totalSmsSent++;
+        if (history.contactMethod === 'whatsapp') totalWhatsappSent++;
+        if (history.contactMethod === 'call') totalCallsMade++;
+      });
+    }
+  });
+
 
   // 3. Calculate summary metrics & Marketer Breakdown
   const totalLeads = reports.reduce((acc, curr) => acc + (curr.hotLeads || 0), 0);
@@ -103,9 +144,10 @@ async function generateAndSendSummary(startDate?: Date, endDate?: Date) {
     Review the following database of field engagement reports (Timeframe: ${timeFrameText}) and provide an encouraging, insightful summary for the management team. 
 
     Your summary MUST include:
-    1. A brief overview of the overall performance (Total leads: ${totalLeads}, Total converted: ${totalConverted}) during this specific timeframe.
+    1. A brief overview of the overall performance (Total leads: ${totalLeads}, Total converted: ${totalConverted}, Total Inquiries: ${totalInquiries}) during this specific timeframe.
     2. Specific shout-outs to the names of the Channels (our field agents/locations) and exactly what they have achieved based on the data. Ensure you mention who brought in the most hot leads.
     3. Actionable strategic suggestions tailored to selling our self-paced video classes in the NIGERIAN MARKET. You must suggest highly effective, localized marketing strategies currently working in Nigeria (e.g., WhatsApp marketing, local community outreach, overcoming data/internet cost objections, leveraging parent networks) directly addressing the specific challenges or objections reported by the agents in the field.
+    4. A brief mention of the Inquiries data (Total Inquiries: ${totalInquiries}) and any notable status breakdown.
 
     Complete Activity Data (JSON format): 
     ${JSON.stringify(allActivityData)}
@@ -173,6 +215,62 @@ async function generateAndSendSummary(startDate?: Date, endDate?: Date) {
           <td style="padding: 10px; border: 1px solid #cbd5e1;">Flyers Distributed</td>
           <td style="padding: 10px; border: 1px solid #cbd5e1;">${totalFlyers}</td>
         </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #cbd5e1;">Total Inquiries</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e1;"><strong>${totalInquiries}</strong></td>
+        </tr>
+      </table>
+
+      <h3>Inquiries Breakdown & Activity</h3>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+        <tr style="background-color: #e2e8f0; text-align: left;">
+          <th style="padding: 10px; border: 1px solid #cbd5e1;">Status / Activity</th>
+          <th style="padding: 10px; border: 1px solid #cbd5e1;">Count</th>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #cbd5e1;">Status: New</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e1;">${inquiriesByStatus['new'] || 0}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #cbd5e1;">Status: Contacted</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e1;">${inquiriesByStatus['contacted'] || 0}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #cbd5e1;">Status: Follow-up</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e1;">${inquiriesByStatus['follow-up'] || 0}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #cbd5e1;">Status: Resolved</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e1; color: #10b981;">${inquiriesByStatus['resolved'] || 0}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #cbd5e1;">SMS Sent</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e1;">${totalSmsSent}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #cbd5e1;">WhatsApp Messages</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e1;">${totalWhatsappSent}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #cbd5e1;">Calls Made</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e1;">${totalCallsMade}</td>
+        </tr>
+      </table>
+
+      <h3>Top Interests (Classes)</h3>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+        <tr style="background-color: #e2e8f0; text-align: left;">
+          <th style="padding: 10px; border: 1px solid #cbd5e1;">Class / Course</th>
+          <th style="padding: 10px; border: 1px solid #cbd5e1;">Inquiries</th>
+        </tr>
+        ${Object.entries(inquiriesByClass)
+          .sort((a, b) => b[1] - a[1])
+          .map(([className, count]) => `
+          <tr>
+            <td style="padding: 10px; border: 1px solid #cbd5e1;">${className}</td>
+            <td style="padding: 10px; border: 1px solid #cbd5e1;">${count}</td>
+          </tr>
+        `).join('')}
       </table>
       
       <p style="font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 20px;">

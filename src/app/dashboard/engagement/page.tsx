@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { Loader2, ChevronLeft, ChevronRight, BarChart3, PieChart as PieChartIcon, Trash2, Eye, X, Send, MailPlus, CheckCircle } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, BarChart3, PieChart as PieChartIcon, Trash2, Eye, X, Send, MailPlus, CheckCircle, ToggleLeft, ToggleRight } from "lucide-react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell
@@ -130,6 +130,27 @@ export default function EngagementDashboard() {
       }
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const handleToggleEmail = async (id: string, currentStatus: boolean) => {
+    try {
+      // Optimistically update
+      setRecipients(recipients.map(r => r._id === id ? { ...r, isActive: !currentStatus } : r));
+      const res = await fetch(`/api/engagements/recipients/${id}`, { 
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !currentStatus })
+      });
+      const data = await res.json();
+      if (!data.success) {
+        // Revert on failure
+        setRecipients(recipients.map(r => r._id === id ? { ...r, isActive: currentStatus } : r));
+      }
+    } catch (error) {
+      console.error(error);
+      // Revert on failure
+      setRecipients(recipients.map(r => r._id === id ? { ...r, isActive: currentStatus } : r));
     }
   };
 
@@ -506,15 +527,24 @@ export default function EngagementDashboard() {
             ) : (
               <ul className="space-y-2 max-h-[160px] overflow-y-auto custom-scrollbar pr-2">
                 {recipients.map((r) => (
-                  <li key={r._id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl shadow-sm">
-                    <span className="text-sm text-slate-700 dark:text-slate-300 font-medium truncate">{r.email}</span>
-                    <button 
-                      onClick={() => handleDeleteEmail(r._id)}
-                      className="text-slate-400 hover:text-red-500 transition-colors p-1"
-                      title="Remove"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                  <li key={r._id} className={`flex items-center justify-between p-3 bg-white dark:bg-slate-800 border ${r.isActive !== false ? 'border-indigo-100 dark:border-indigo-500/30' : 'border-slate-100 dark:border-slate-700 opacity-60'} rounded-xl shadow-sm transition-all`}>
+                    <span className="text-sm text-slate-700 dark:text-slate-300 font-medium truncate flex-1">{r.email}</span>
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => handleToggleEmail(r._id, r.isActive !== false)}
+                        className={`transition-colors p-1 rounded-md ${r.isActive !== false ? 'text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
+                        title={r.isActive !== false ? "Disable Emails" : "Enable Emails"}
+                      >
+                        {r.isActive !== false ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />}
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteEmail(r._id)}
+                        className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                        title="Remove"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>
