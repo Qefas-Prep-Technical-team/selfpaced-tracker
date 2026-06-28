@@ -511,7 +511,22 @@
       "command": "& \"C:\\Users\\HP\\AppData\\Local\\Temp\\wshist_c8b9kf.ps1\"; Remove-Item \"C:\\Users\\HP\\AppData\\Local\\Temp\\wshist_c8b9kf.ps1\" -ErrorAction SilentlyContinue",
       "timestamp": 1782640097233,
       "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git add .",
+      "timestamp": 1782640342618,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git commit -m \"cron job for marketing done 2\"",
+      "timestamp": 1782640384563,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git push origin",
+      "timestamp": 1782640419145,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
     }
   ],
-  "lastUpdated": 1782640097233
+  "lastUpdated": 1782640419145
 }

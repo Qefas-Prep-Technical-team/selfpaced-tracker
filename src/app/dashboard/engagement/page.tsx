@@ -368,7 +368,7 @@ export default function EngagementDashboard() {
               </div>
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Leads vs Conversions</h2>
             </div>
-            <div className="h-[300px] w-full">
+            <div className="h-[350px] lg:h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={barData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -394,19 +394,19 @@ export default function EngagementDashboard() {
               </div>
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Activity by Channel</h2>
             </div>
-            <div className="h-[300px] w-full">
+            <div className="h-[350px] lg:h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Tooltip 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
-                  <Legend iconType="circle" />
+                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
                   <Pie
                     data={pieData}
                     cx="50%"
-                    cy="45%"
+                    cy="40%"
                     innerRadius={60}
-                    outerRadius={100}
+                    outerRadius={90}
                     paddingAngle={5}
                     dataKey="value"
                   >
