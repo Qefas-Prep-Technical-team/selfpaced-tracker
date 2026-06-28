@@ -4,9 +4,28 @@ import { EngagementReport } from "@/models/EngagementReport";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
+
+export async function GET() {
+  try {
+    await dbConnect();
+    const reports = await EngagementReport.find({
+      nameChannel: { $ne: 'Unknown' }
+    }).sort({ date: -1 });
+    return NextResponse.json(
+      { success: true, data: reports },
+      { status: 200, headers: corsHeaders }
+    );
+  } catch (error) {
+    console.error("Failed to fetch engagement reports:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to fetch engagement reports" },
+      { status: 500, headers: corsHeaders }
+    );
+  }
+}
 
 export async function POST(req: Request) {
   try {

@@ -12,6 +12,7 @@ const navItems = [
   { icon: 'newspaper', label: 'Newsletters', link: "/dashboard/newsletters" },
   { icon: 'campaign', label: 'Campaigns', link: "/dashboard/campaigns" },
   { icon: 'bar_chart', label: 'Analytics', link: "/dashboard/analytics" },
+  { icon: 'assignment', label: 'Engagement', link: "/dashboard/engagement" },
   { icon: 'settings_input_antenna', label: 'Channel', link: "/dashboard/channel" },
   { icon: 'network_intel_node', label: 'KnowledgeManager', link: "/dashboard/KnowledgeManager" },
   { icon: 'ads_click', label: 'Clicks', link: "/dashboard/clicks" },

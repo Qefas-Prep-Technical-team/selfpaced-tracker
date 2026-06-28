@@ -436,7 +436,47 @@
       "command": "git push origin",
       "timestamp": 1782517814515,
       "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git add .",
+      "timestamp": 1782518029777,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git commit -m \"updated the ai logi and included telegram bot image 3\"",
+      "timestamp": 1782518039817,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git push origin",
+      "timestamp": 1782518048118,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "ngrok http 3000",
+      "timestamp": 1782547632745,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "& \"C:\\Users\\HP\\AppData\\Local\\Temp\\wshist_thl9if.ps1\"; Remove-Item \"C:\\Users\\HP\\AppData\\Local\\Temp\\wshist_thl9if.ps1\" -ErrorAction SilentlyContinue",
+      "timestamp": 1782633730817,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "& \"C:\\Users\\HP\\AppData\\Local\\Temp\\wshist_g9n467.ps1\"; Remove-Item \"C:\\Users\\HP\\AppData\\Local\\Temp\\wshist_g9n467.ps1\" -ErrorAction SilentlyContinue",
+      "timestamp": 1782633730829,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "node cleanup_unknowns.js",
+      "timestamp": 1782634911751,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git addd .",
+      "timestamp": 1782638583363,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
     }
   ],
-  "lastUpdated": 1782517814515
+  "lastUpdated": 1782638583363
 }
