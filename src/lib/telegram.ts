@@ -1,5 +1,5 @@
 import { COURSE_MAP, COURSE_ROWS, WEBSITE_URL } from "./constants/whatsapp";
-import { COURSE_LIST_BANNER, COURSE_BANNERS, GENERAL_QEFAS_BANNER } from "./constants/images";
+import { COURSE_LIST_BANNER, COURSE_BANNERS, GENERAL_QEFAS_BANNER, GENERAL_HUB_BANNER } from "./constants/images";
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
@@ -38,6 +38,23 @@ export async function sendTelegramGeneralAbout(chatId: string, text: string) {
     if (!res.ok) console.error("Telegram General Banner Error:", await res.text());
   } catch (error) {
     console.error("Error sending Telegram general banner:", error);
+  }
+}
+
+export async function sendTelegramHubAbout(chatId: string, text: string) {
+  try {
+    const res = await fetch(`${TELEGRAM_API_URL}/sendPhoto`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        photo: GENERAL_HUB_BANNER,
+        caption: text,
+      }),
+    });
+    if (!res.ok) console.error("Telegram Hub Banner Error:", await res.text());
+  } catch (error) {
+    console.error("Error sending Telegram hub banner:", error);
   }
 }
 

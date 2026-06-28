@@ -168,6 +168,21 @@ export async function POST(req: NextRequest) {
       return Response.json({ ok: true });
     }
 
+    if (ai.action === "SHOW_HUB_ABOUT") {
+      if (ai.reply) {
+        await saveBotMessage(convo, ai.reply);
+        await pusher.trigger(channel, "new-message", {
+          body: ai.reply,
+          sender: "bot",
+        });
+        await pusher.trigger("chat-updates", "new-message", { sender: "bot", conversationId: convo._id.toString() });
+        
+        const { sendMetaHubAbout } = await import("@/lib/meta");
+        await sendMetaHubAbout(from, ai.reply);
+      }
+      return Response.json({ ok: true });
+    }
+
     if (ai.action === "SHOW_LIST") {
       if (ai.reply) {
         await saveBotMessage(convo, ai.reply);

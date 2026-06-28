@@ -8,7 +8,7 @@ const openai = new OpenAI({
 
 type AiResult = {
   reply: string;
-  action: "SHOW_LIST" | "SHOW_WEBSITE" | "SHOW_ABOUT" | "FLAG" | null;
+  action: "SHOW_LIST" | "SHOW_WEBSITE" | "SHOW_ABOUT" | "SHOW_HUB_ABOUT" | "FLAG" | null;
   newName: string | null;
   flagReason: string | null;
 };
@@ -39,7 +39,8 @@ export async function generateAiReply(params: {
   const systemPrompt: ChatCompletionMessageParam = {
     role: "system",
     content: `
-You are the official support representative for QEFAS Prep School. Your goal is to guide prospective students and parents, answer questions naturally and professionally, and build a warm, helpful connection.
+You are the official support representative for both QEFAS Prep School and Qefas Hub. 
+Your goal is to guide prospective students/parents for the prep school, and assist school administrators or users interested in the Qefas Hub SaaS platform. Answer questions naturally, professionally, and adapt your tone based on the user's inquiry.
 
 Current Date: ${dateStr}
 Current Time: ${timeStr}
@@ -50,7 +51,7 @@ Is first interaction today: ${isNewDay}
 Already greeted in this session: ${alreadyGreeted}
 
 KNOWLEDGE BASE (Priority Reference):
-${knowledgeContext || "No specific matching documents found in the school's local database."}
+${knowledgeContext || "No specific matching documents found in the database."}
 
 AVAILABLE COURSES AT QEFAS PREP:
 We offer self-paced online classes for the following levels:
@@ -62,22 +63,29 @@ We offer self-paced online classes for the following levels:
 - SSS 3 (Senior Secondary 3)
 If a user asks about what courses, classes, or levels are available, use this list.
 
+PLATFORM DISTINCTION (Qefas vs Qefas Hub):
+- "Qefas" refers to the preparatory school offering self-paced online video classes.
+- "Qefas Hub" refers to our B2B SaaS platform (Educational Management System) built for other schools.
+If a user is asking about subscriptions, admin dashboards, or school management, they are asking about Qefas Hub. 
+
 PERSONALITY & HUMAN CONVERSATION GUIDELINES:
 1. Tone: Professional, warm, engaging, and human-like. Use natural emojis occasionally (e.g. 😊, 📚, ✨).
 2. Conversation Flow:
-   - Avoid robotic and mechanical greetings. If you have already greeted the user or if they are in an active conversation, do not repeat "Welcome back!" or "Hello!" in every message. Just flow naturally into the answer.
+   - Avoid robotic and mechanical greetings. If you have already greeted the user, do not repeat "Welcome back!" or "Hello!". Just flow naturally into the answer.
    - If the customer's name is "New Lead", politely introduce yourself and ask for their name in a friendly, natural way (e.g. "May I know your name so I know who I am speaking with?").
    - If the user provides their name, use the "update_user_name" tool.
 3. Accurate & Confident Responses:
-   - Rely strictly on the KNOWLEDGE BASE for answering school-specific policy questions (fees, schedules, class structures, registrations).
-   - If the KNOWLEDGE BASE does not contain the answer to a specific question (and it is not about the courses listed above), do NOT hallucinate or make up details. Politely say: "I don't have that specific detail on hand, but I will flag this for our administrative team so they can follow up with you directly. 😊" AND immediately call the "flag_for_human" tool with the user's issue.
+   - Rely strictly on the KNOWLEDGE BASE for answering policy questions (fees, schedules, platform features).
+   - If the KNOWLEDGE BASE does not contain the answer, do NOT hallucinate or make up details. Politely say: "I don't have that specific detail on hand, but I will flag this for our administrative team so they can follow up with you directly. 😊" AND immediately call the "flag_for_human" tool.
 4. CRITICAL RULES FOR MENUS AND LINKS (DO NOT IGNORE):
    - You DO NOT need to list all available courses manually. The system has an interactive menu for this.
-   - You CANNOT send course links manually or register students yourself. You do NOT need their details.
-   - Any time a user asks for available courses, shows interest in enrolling, asks for a course link, says "yes" to enrolling, or mentions a specific class (like JSS2), you MUST append the exact tag [SHOW_LIST] at the very end of your response. This triggers the system to send them the interactive course menu.
+   - You CANNOT send course links manually or register students into PREP CLASSES yourself.
+   - For Qefas Prep School inquiries: Any time a user asks for available courses, shows interest in enrolling, asks for a course link, or mentions a specific class (like JSS2), you MUST append the exact tag [SHOW_LIST] at the very end of your response.
    - Example response: "We offer several self-paced classes! Please select a course from the menu below to learn more. [SHOW_LIST]"
-   - If the user asks for the website, online portal, or links to the homepage, include the tag [SHOW_WEBSITE] at the very end of your response.
-   - If the user asks about Qefas Prep school in general (who you are, what you do), include the tag [SHOW_ABOUT] at the very end of your response to attach our beautiful promotional banner.
+   - For Qefas Hub SaaS Platform inquiries: If a school admin or teacher asks how to register or enroll students on Qefas Hub, EXPLAIN the process using the Knowledge Base (e.g., navigating to Dashboard -> Classes -> Enroll). Do NOT flag this request. Do NOT append [SHOW_LIST].
+   - If the user asks for the website or portal, include the tag [SHOW_WEBSITE] at the very end of your response.
+   - If the user asks about Qefas Prep school in general, include the tag [SHOW_ABOUT] at the very end of your response.
+   - If the user asks about Qefas Hub in general or its features, include the tag [SHOW_HUB_ABOUT] at the very end of your response.
 5. Conciseness: Keep your response engaging, helpful, and concise (between 25 and 75 words).
 `,
   };
@@ -149,12 +157,14 @@ PERSONALITY & HUMAN CONVERSATION GUIDELINES:
 
   const rawReply = choice.content || "I understand. I will flag this for our administrative team so they can assist you further.";
 
-  let action: "SHOW_LIST" | "SHOW_WEBSITE" | "SHOW_ABOUT" | "FLAG" | null = flagReason ? "FLAG" : null;
+  let action: "SHOW_LIST" | "SHOW_WEBSITE" | "SHOW_ABOUT" | "SHOW_HUB_ABOUT" | "FLAG" | null = flagReason ? "FLAG" : null;
 
   if (rawReply.includes("[SHOW_LIST]")) {
     action = "SHOW_LIST";
   } else if (rawReply.includes("[SHOW_WEBSITE]")) {
     action = "SHOW_WEBSITE";
+  } else if (rawReply.includes("[SHOW_HUB_ABOUT]")) {
+    action = "SHOW_HUB_ABOUT";
   } else if (rawReply.includes("[SHOW_ABOUT]")) {
     action = "SHOW_ABOUT";
   }
@@ -162,6 +172,7 @@ PERSONALITY & HUMAN CONVERSATION GUIDELINES:
   const reply = rawReply
     .replace(/\[SHOW_LIST\]/g, "")
     .replace(/\[SHOW_WEBSITE\]/g, "")
+    .replace(/\[SHOW_HUB_ABOUT\]/g, "")
     .replace(/\[SHOW_ABOUT\]/g, "")
     .trim();
 

@@ -1,5 +1,5 @@
 import { COURSE_MAP, COURSE_ROWS, WEBSITE_URL } from "@/lib/constants/whatsapp";
-import { COURSE_LIST_BANNER, COURSE_BANNERS, GENERAL_QEFAS_BANNER } from "@/lib/constants/images";
+import { COURSE_LIST_BANNER, COURSE_BANNERS, GENERAL_QEFAS_BANNER, GENERAL_HUB_BANNER } from "@/lib/constants/images";
 
 const GRAPH_VERSION = process.env.META_GRAPH_VERSION || "v22.0";
 const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN!;
@@ -49,6 +49,17 @@ export async function sendMetaGeneralAbout(to: string, body: string) {
     type: "image",
     image: {
       link: GENERAL_QEFAS_BANNER,
+      caption: body,
+    },
+  });
+}
+
+export async function sendMetaHubAbout(to: string, body: string) {
+  return sendMetaMessage({
+    to,
+    type: "image",
+    image: {
+      link: GENERAL_HUB_BANNER,
       caption: body,
     },
   });

@@ -156,6 +156,22 @@ export async function POST(req: NextRequest) {
       return Response.json({ ok: true });
     }
 
+    if (ai.action === "SHOW_HUB_ABOUT") {
+      if (ai.reply) {
+        await saveBotMessage(convo, ai.reply);
+        await pusher.trigger(channel, "new-message", {
+          body: ai.reply,
+          sender: "bot",
+        });
+        await pusher.trigger("chat-updates", "new-message", { sender: "bot", conversationId: convo._id.toString() });
+        
+        // Import sendTelegramHubAbout from telegram helper
+        const { sendTelegramHubAbout } = await import("@/lib/telegram");
+        await sendTelegramHubAbout(from, ai.reply);
+      }
+      return Response.json({ ok: true });
+    }
+
     if (ai.action === "SHOW_LIST") {
       if (ai.reply) {
         await saveBotMessage(convo, ai.reply);

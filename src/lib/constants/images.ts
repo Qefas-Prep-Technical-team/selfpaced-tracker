@@ -1,6 +1,7 @@
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://qefashub.com";
 
 export const GENERAL_QEFAS_BANNER = `${BASE_URL}/chat_images/about.png`;
+export const GENERAL_HUB_BANNER = `${BASE_URL}/chat_images/hub_about.png`;
 
 export const COURSE_LIST_BANNER = `${BASE_URL}/chat_images/list.png`;
 
