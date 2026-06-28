@@ -183,7 +183,7 @@ async function generateAndSendSummary(startDate?: Date, endDate?: Date) {
 
   const sendPromises = emailList.map(email => 
     resend.emails.send({
-      from: 'Qefas Marketing <onboarding@resend.dev>',
+      from: process.env.RESEND_FROM_EMAIL || 'Qefas Marketing <reports@qefas.com>',
       to: email,
       subject: '🚀 Engagement AI Summary',
       html: emailHtml,

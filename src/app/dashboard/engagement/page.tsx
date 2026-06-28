@@ -324,8 +324,8 @@ export default function EngagementDashboard() {
         
         {/* Pagination Controls */}
         {!loading && reports.length > 0 && (
-          <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
-            <div className="text-sm text-slate-500 dark:text-slate-400">
+          <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-800/20">
+            <div className="text-sm text-slate-500 dark:text-slate-400 text-center sm:text-left">
               Showing <span className="font-medium text-slate-900 dark:text-white">{startIndex + 1}</span> to{" "}
               <span className="font-medium text-slate-900 dark:text-white">
                 {Math.min(startIndex + itemsPerPage, reports.length)}
@@ -435,25 +435,25 @@ export default function EngagementDashboard() {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-end gap-4">
-            <div className="flex items-center gap-3 w-full sm:w-auto bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
-              <div className="flex flex-col">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-4 w-full lg:w-auto">
+            <div className="flex flex-row items-center justify-between gap-2 w-full sm:w-auto bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
+              <div className="flex flex-col flex-1">
                 <label className="text-[10px] uppercase font-bold text-slate-500 mb-1 px-1">Start Date</label>
                 <input 
                   type="date" 
                   value={summaryStartDate}
                   onChange={(e) => setSummaryStartDate(e.target.value)}
-                  className="bg-transparent text-sm font-medium text-slate-900 dark:text-white outline-none cursor-pointer"
+                  className="bg-transparent text-sm font-medium text-slate-900 dark:text-white outline-none cursor-pointer w-full max-w-[130px]"
                 />
               </div>
-              <div className="text-slate-300">-</div>
-              <div className="flex flex-col">
+              <div className="text-slate-300 px-1">-</div>
+              <div className="flex flex-col flex-1">
                 <label className="text-[10px] uppercase font-bold text-slate-500 mb-1 px-1">End Date</label>
                 <input 
                   type="date" 
                   value={summaryEndDate}
                   onChange={(e) => setSummaryEndDate(e.target.value)}
-                  className="bg-transparent text-sm font-medium text-slate-900 dark:text-white outline-none cursor-pointer"
+                  className="bg-transparent text-sm font-medium text-slate-900 dark:text-white outline-none cursor-pointer w-full max-w-[130px]"
                 />
               </div>
             </div>
@@ -477,7 +477,7 @@ export default function EngagementDashboard() {
           {/* Add Email Form */}
           <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800">
             <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4">Add Recipient</h3>
-            <form onSubmit={handleAddEmail} className="flex gap-3">
+            <form onSubmit={handleAddEmail} className="flex flex-col sm:flex-row gap-3">
               <input 
                 type="email" 
                 required
@@ -572,7 +572,7 @@ export default function EngagementDashboard() {
             
             <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
               
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
                   <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Channel</p>
                   <p className="font-semibold text-slate-900 dark:text-white">{selectedReport.nameChannel}</p>
@@ -591,7 +591,7 @@ export default function EngagementDashboard() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
                   <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Flyers Distributed</p>
                   <p className="font-semibold text-slate-900 dark:text-white">{selectedReport.flyersDistributed || 0}</p>
