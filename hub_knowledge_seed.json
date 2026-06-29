@@ -1,0 +1,140 @@
+[
+  {
+    "category": "Qefas Hub",
+    "question": "What is Qefas Hub and what is its core value proposition?",
+    "answer": "Qefas Hub is a full-stack school administration and educational management platform. It offers an all-in-one management system for student lifecycles, a premium glassmorphic UI, AI integration for grading and remarks, white-labeling (custom subdomains), and Nigerian compliance including the WAEC grading scale and 40/60 CA/Exam split.",
+    "tags": ["overview", "platform", "qefas hub", "value", "features"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "What are the specific capabilities of a School Administrator?",
+    "answer": "School Administrators have the highest access level. They can manage digital infrastructure, curriculum, global registries, build subdomains and landing pages, generate timetables, manage Paystack billing, and oversee academic performance, attendance, and AI quota usage.",
+    "tags": ["roles", "administrator", "admin", "capabilities", "permissions"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "What are the specific capabilities of a Teacher or Faculty member?",
+    "answer": "Teachers can view assigned classes, subjects, and schedules. They can create assignments and exams (AI-assisted), take attendance, log behavior, grade and upload marks (manual or CSV), and generate subject/performance reports.",
+    "tags": ["roles", "teacher", "faculty", "capabilities", "permissions"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "What are the specific capabilities of a Student?",
+    "answer": "Students can view their academic summary, submit assignments, check their personal timetable, view behavioral logs and warnings, and download official transcripts.",
+    "tags": ["roles", "student", "capabilities", "permissions"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "What are the specific capabilities of a Parent or Guardian?",
+    "answer": "Parents and Guardians can view their child's academic records and progress, track attendance and disciplinary actions, and monitor fee payments and subscription status.",
+    "tags": ["roles", "parent", "guardian", "capabilities", "permissions"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "What is the main website for Qefas Hub login and registration?",
+    "answer": "The main public website is qefashub.com. Individual schools may also have their own custom portal at schoolname.qefashub.com.",
+    "tags": ["login", "registration", "website", "portal"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "What are the self-registration links for School Admins, Teachers, Students, and Parents?",
+    "answer": "School Admin: qefashub.com/signup/school\nTeacher: qefashub.com/signup/teacher\nStudent: qefashub.com/signup/student\nParent/Guardian: qefashub.com/signup/parent\nNote: Registration can also be done via direct invitation links issued by the school.",
+    "tags": ["registration", "links", "signup", "roles"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "What is the login flow and how do users reset their passwords?",
+    "answer": "Users go to qefashub.com, click Login, choose their role (or use their school's specific portal), and enter their email and password. To reset a password, users can click 'Forgot Password' to receive an email link, or Admins can reset passwords directly from their dashboard.",
+    "tags": ["login", "password", "reset", "flow", "forgot password"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "How do School Administrators customize school branding and landing pages?",
+    "answer": "Admins customize their dedicated subdomain (schoolname.qefashub.com) using a visual page builder found under Admin Dashboard -> Settings -> Subdomain. They can edit the Hero section, Vision & Mission, brand colors, and testimonials with a live preview.",
+    "tags": ["branding", "landing page", "subdomain", "customization", "admin"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "How is the student lifecycle and registry managed?",
+    "answer": "A student can only have one active enrollment at a time. Registering a student creates a permanent, immutable History Timeline (admission, promotions, graduation, exit). Admins use bulk promotion tools to move students to the next session.",
+    "tags": ["student", "lifecycle", "registry", "enrollment", "history", "promotion"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "How are academics, curriculum, and timetables managed?",
+    "answer": "Admins define departments and subjects. Timetables use 12-hour AM/PM formatting and can be exported as branded PDFs. Exams use a 3-step creation flow: Basic Info, Scope & Target, and Results Release.",
+    "tags": ["academics", "curriculum", "timetable", "exams", "admin", "teacher"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "How does grading and transcript scoring work?",
+    "answer": "Grades are entered manually or via CSV upload (which is a premium feature). Transcripts use a 40% CA and 60% Exam split. Official transcripts display WAEC alpha grades (A1-F9), student photos, logos, and AI-generated remarks.",
+    "tags": ["grading", "transcript", "scores", "waec", "ca", "exam", "csv"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "How is attendance and behavioral tracking handled?",
+    "answer": "Teachers and admins mark daily attendance. Behavioral logs (Positive, Warning, Danger) are recorded on a timeline. The system aggregates these logs to calculate an overall 'Exemplary Conduct Score' out of 100.",
+    "tags": ["attendance", "behavior", "tracking", "conduct score", "logs"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "How does subscription and billing work on Qefas Hub?",
+    "answer": "Paystack handles auto-renewing subscriptions via card tokenization. If a subscription expires, a midnight cron job automatically downgrades the account to a Free Tier (core data is preserved, but premium features are blocked). Platform limits apply to Max Students, Max Storage, and Max AI Prompts.",
+    "tags": ["subscription", "billing", "paystack", "free tier", "limits", "quotas", "renewal"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "What AI features are available on Qefas Hub?",
+    "answer": "The platform includes AI Performance Insights for analytical breakdowns of exam records, AI Exam Generation to help teachers set questions, and AI Transcript Remarks for drafting teacher and principal comments. AI usage operates on a daily quota that resets at midnight.",
+    "tags": ["ai", "features", "insights", "generation", "remarks", "quota"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "Support: I can't add a new student or get a registration error.",
+    "answer": "First, check the school's current plan limits in Billing to ensure the 'Max Students' quota hasn't been reached. If at quota, advise upgrading. If under quota, verify that the student doesn't already have an active enrollment (the system enforces a one-active-enrollment rule).",
+    "tags": ["support", "error", "student", "registration", "quota", "limit"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "Support: How do I change my school's login page or branding?",
+    "answer": "Confirm you have School Admin privileges. Go to Dashboard -> Settings -> Subdomain. From there, you can use the visual page builder to edit your Hero text, brand colors, Vision & Mission, and testimonials.",
+    "tags": ["support", "branding", "landing page", "customization", "edit", "settings"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "Support: A former student is returning — how do I re-add them?",
+    "answer": "Do not create a new student record. Go to the student's existing profile and use the 'Re-enroll' action. This will close their previous Exited status and open a new Active enrollment timeline event.",
+    "tags": ["support", "returning student", "re-enroll", "registry", "old student"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "Support: AI Insights or AI feature is locked, but I'm on a premium plan.",
+    "answer": "Premium plans still have a daily AI prompt usage cap. Check the quota indicator on your dashboard; if you have reached 100%, the feature will remain locked until the quota automatically resets at midnight.",
+    "tags": ["support", "ai", "locked", "limit", "quota", "premium"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "Support: How are end-of-term report cards generated?",
+    "answer": "Once all teachers have submitted CA and Exam grades for the term, the system automatically aggregates them on the 40/60 scale. Admins and Students can then go to the transcript area to download the official PDF, complete with WAEC grades and AI remarks.",
+    "tags": ["support", "report cards", "transcripts", "generation", "term"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "Support: My CSV grade upload failed or looks wrong.",
+    "answer": "First, confirm your school is on a premium plan, as CSV upload is a premium feature. Next, ensure that your CSV format perfectly matches the platform's expected column template. If the plan and format are correct and it still fails, please flag this for technical support.",
+    "tags": ["support", "csv", "upload", "grades", "error", "failed"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "Support: My subscription expired — what happens to our data?",
+    "answer": "Do not worry! Core data is perfectly preserved on the Free Tier and will not be deleted. However, premium features (like CSV upload) are blocked until you renew. You can restore full access immediately by renewing your subscription in the Billing section.",
+    "tags": ["support", "subscription", "expired", "data loss", "free tier", "billing"]
+  },
+  {
+    "category": "Qefas Hub",
+    "question": "How should technical issues be diagnosed based on the tech stack?",
+    "answer": "Use the underlying stack to diagnose issue categories: Frontend is Next.js/React, Backend is Node.js/Prisma, Validation is Zod, File storage is AWS S3, Payments are Paystack. For example, if an upload fails, it is likely an S3 or storage limit issue.",
+    "tags": ["technical", "stack", "diagnosis", "errors", "s3", "paystack"]
+  }
+]

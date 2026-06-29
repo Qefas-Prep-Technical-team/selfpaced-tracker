@@ -123,3 +123,6 @@ If users experience technical issues, it helps to understand how the platform is
 
 **Q: How do we handle end-of-term report cards?**
 *A: Once all teachers have recorded their CA and Exam grades, the system automatically aggregates them on a 40/60 scale. Admins or Students can then navigate to the transcript area and download a comprehensive, official PDF report card complete with AI-generated remarks and digital signatures.*
+
+**Q: How do I register or create an account for a student on Qefas Hub?**
+*A: Students cannot register themselves directly on the Qefas Hub website. Only a School Administrator can create student accounts. To register a student, the Admin should go to the Dashboard, navigate to the "Students" page on the sidebar, and click the "Add Student" button. This creates the student account in an "unclaimed" state. The student can then log in after the admin sends them an invite link directly from the invite page.*

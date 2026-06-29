@@ -586,7 +586,57 @@
       "command": "& \"C:\\Users\\HP\\AppData\\Local\\Temp\\wshist_69cpw.ps1\"; Remove-Item \"C:\\Users\\HP\\AppData\\Local\\Temp\\wshist_69cpw.ps1\" -ErrorAction SilentlyContinue",
       "timestamp": 1782647807800,
       "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git add .",
+      "timestamp": 1782648150796,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git commit -m \"qefas hub ai tarining \"",
+      "timestamp": 1782648236694,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "git push origin",
+      "timestamp": 1782648313666,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "npm run dev",
+      "timestamp": 1782724641413,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "curl -X POST http://localhost:3000/api/chat \\\n  -H \"Content-Type: application/json\" \\\n  -d \"{\\\"message\\\": \\\"What does the document say?\\\"}\"",
+      "timestamp": 1782726955378,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "curl -X POST http://localhost:3000/api/chat \\ -H \"Content-Type: application/json\" \\-d \"{\\\"message\\\": \\\"What does the document say?\\\"}\"",
+      "timestamp": 1782726980943,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "Invoke-RestMethod -Uri \"http://localhost:3000/api/chat\" -Method Post -Headers @{\"Content-Type\"=\"application/json\"} -Body '{\"message\": \"What does the document say?\"}'",
+      "timestamp": 1782727019420,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "Invoke-RestMethod -Uri \"http://localhost:3000/api/chat\" -Method Post -Headers @{\"Content-Type\"=\"application/json\"} -Body '{\"question\": \"What does the document say?\"}'",
+      "timestamp": 1782727080200,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "Invoke-RestMethod -Uri \"http://localhost:3000/api/chat\" -Method Post -Headers @{\"Content-Type\"=\"application/json\"} -Body '{\"question\": \"What does qefas hub do \"}'",
+      "timestamp": 1782727307294,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
+    },
+    {
+      "command": "npm run dev",
+      "timestamp": 1782747665914,
+      "cwd": "c:\\Users\\HP\\Documents\\GitHub\\Qefas Project\\selfpaced-tracker"
     }
   ],
-  "lastUpdated": 1782647807800
+  "lastUpdated": 1782747665914
 }
